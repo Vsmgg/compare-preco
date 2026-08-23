@@ -11,7 +11,7 @@ import {
   isLikelyStorefront,
   looksLikeListingUrl,
   parseOriginalPrice,
-  parsePriceBR,
+  parsePriceWithDiscount,
   parseRating,
   parseReviewCount,
   parseShippingDate,
@@ -58,11 +58,11 @@ export function normalizeOffer(result: BraveWebResult): RawOffer | null {
   if (isGenericCategoryTitle(result.title) || looksLikeListingUrl(result.url)) return null;
 
   const textBlob = [result.description, ...(result.extra_snippets ?? [])].join(" ");
-  const price = parsePriceBR(textBlob);
+  const { price, originalPrice } = parsePriceWithDiscount([textBlob, result.title].join(" "));
   return {
     title: cleanTitle(result.title),
     price,
-    originalPrice: parseOriginalPrice([textBlob, result.title].join(" "), price),
+    originalPrice,
     currency: "BRL",
     imageUrl: result.thumbnail?.original || null,
     productUrl: result.url,

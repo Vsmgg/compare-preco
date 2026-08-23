@@ -224,28 +224,52 @@ function priceToNumberBR(raw: string): number | null {
   return Number.isFinite(value) && value >= 10 ? value : null;
 }
 
+const PRICE_NUMBER = String.raw`(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:,\d{2})?)`;
+const DE_POR_PATTERN = new RegExp(`de:?\\s*R\\$\\s?${PRICE_NUMBER}\\s*por:?\\s*R\\$\\s?${PRICE_NUMBER}`, "i");
+const PERCENT_OFF_PATTERN = /(\d{1,2})\s*%\s*(?:off\b|de desconto\b|desconto\b)/i;
+
+function originalPriceFromPercent(text: string, price: number): number | null {
+  const pctMatch = text.match(PERCENT_OFF_PATTERN);
+  if (!pctMatch) return null;
+  const pct = parseInt(pctMatch[1], 10);
+  if (pct <= 0 || pct >= 90) return null;
+  const original = Math.round((price / (1 - pct / 100)) * 100) / 100;
+  return Number.isFinite(original) && original > price ? original : null;
+}
+
 // Detects a listed "original" price from common Brazilian discount phrasing
-// ("de R$ 3.999 por R$ 2.499", "37% OFF", "37% de desconto") so we can show
-// a real discount instead of always leaving originalPrice empty.
+// ("de R$ 3.999 por R$ 2.499", "37% OFF") for a price that's already known
+// to be reliable (e.g. Brave's structured product price).
 export function parseOriginalPrice(text: string | null | undefined, price: number | null): number | null {
   if (!text || price == null) return null;
 
-  const deParaMatch = text.match(/de\s*R\$\s?(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:,\d{2})?)\s*por\s*R\$/i);
+  const deParaMatch = text.match(DE_POR_PATTERN);
   if (deParaMatch) {
     const original = priceToNumberBR(deParaMatch[1]);
     if (original != null && original > price) return original;
   }
 
-  const pctMatch = text.match(/(\d{1,2})\s*%\s*(?:off\b|de desconto\b|desconto\b)/i);
-  if (pctMatch) {
-    const pct = parseInt(pctMatch[1], 10);
-    if (pct > 0 && pct < 90) {
-      const original = Math.round((price / (1 - pct / 100)) * 100) / 100;
-      if (Number.isFinite(original) && original > price) return original;
+  return originalPriceFromPercent(text, price);
+}
+
+// Same idea, but for free-text results where we don't have a trusted price
+// yet: the "de X por Y" phrasing pins both the sale price and the original
+// directly, which is far more reliable than picking the largest number in
+// the text (that would grab the *original*, pre-discount price instead).
+export function parsePriceWithDiscount(text: string | null | undefined): { price: number | null; originalPrice: number | null } {
+  if (!text) return { price: null, originalPrice: null };
+
+  const deParaMatch = text.match(DE_POR_PATTERN);
+  if (deParaMatch) {
+    const original = priceToNumberBR(deParaMatch[1]);
+    const sale = priceToNumberBR(deParaMatch[2]);
+    if (original != null && sale != null && original > sale) {
+      return { price: sale, originalPrice: original };
     }
   }
 
-  return null;
+  const price = parsePriceBR(text);
+  return { price, originalPrice: price != null ? originalPriceFromPercent(text, price) : null };
 }
 
 export function parseRating(text: string | null | undefined): number | null {
