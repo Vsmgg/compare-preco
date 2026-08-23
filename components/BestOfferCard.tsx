@@ -9,6 +9,7 @@ import { Rating } from "./Rating";
 import { StoreBadge } from "./StoreBadge";
 import { ShippingBadge } from "./ShippingBadge";
 import { ScoreGauge } from "./ScoreGauge";
+import { OfferBadge } from "./OfferBadge";
 
 export function BestOfferCard({
   offer,
@@ -53,7 +54,10 @@ export function BestOfferCard({
         </div>
 
         <div className="min-w-0">
-          <StoreBadge store={offer.store} trustLabel={offer.trustLabel} />
+          <div className="flex flex-wrap items-center gap-2">
+            <StoreBadge store={offer.store} trustLabel={offer.trustLabel} />
+            {offer.availability === false && <OfferBadge label="Indisponível" />}
+          </div>
           <h2 className="mt-1.5 line-clamp-2 font-display text-lg font-semibold text-text sm:text-xl">
             {offer.title}
           </h2>

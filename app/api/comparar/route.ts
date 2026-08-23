@@ -36,6 +36,7 @@ export async function GET(req: Request) {
       shippingDate: r.shipping_date as string | null,
       shippingPrice: r.shipping_price != null ? parseFloat(r.shipping_price) : null,
       condition: r.condition as string | null,
+      availability: r.availability as boolean | null,
       score: r.score != null ? parseFloat(r.score) : null,
       trustLabel: trustLabel({ store: r.store, reviewCount: r.review_count, rating }),
     };

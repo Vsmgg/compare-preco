@@ -1,4 +1,4 @@
-import { Trophy, DollarSign, Star, Zap, ShieldCheck } from "lucide-react";
+import { Trophy, DollarSign, Star, Zap, ShieldCheck, PackageX } from "lucide-react";
 
 const CONFIG: Record<string, { icon: typeof Trophy; className: string }> = {
   "Melhor opção": { icon: Trophy, className: "bg-red text-white" },
@@ -6,6 +6,7 @@ const CONFIG: Record<string, { icon: typeof Trophy; className: string }> = {
   "Melhor avaliação": { icon: Star, className: "bg-amber-400/15 text-amber-400" },
   "Entrega mais rápida": { icon: Zap, className: "bg-sky-400/15 text-sky-400" },
   "Mais confiável": { icon: ShieldCheck, className: "bg-violet-400/15 text-violet-400" },
+  Indisponível: { icon: PackageX, className: "bg-amber-400/15 text-amber-400" },
 };
 
 export function OfferBadge({ label }: { label: string }) {

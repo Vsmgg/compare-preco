@@ -60,12 +60,14 @@
 
 html {
   color-scheme: dark;
+  overflow-x: hidden;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-body), system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
 ::selection {

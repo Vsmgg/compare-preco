@@ -5,8 +5,11 @@ import {
   cleanTitle,
   detectCondition,
   detectFreeShipping,
+  detectUnavailable,
   extractDomain,
+  isGenericCategoryTitle,
   isLikelyStorefront,
+  looksLikeListingUrl,
   parsePriceBR,
   parseRating,
   parseReviewCount,
@@ -27,6 +30,7 @@ function normalizeOffer(result: BraveWebResult): RawOffer | null {
     const price = p.price ? parseFloat(p.price) : null;
     const productUrl = p.offers?.[0]?.url || result.url;
     const textBlob = [p.description, ...(result.extra_snippets ?? [])].join(" ");
+    const rawAvailability = p.offers?.[0]?.availability;
     return {
       title: cleanTitle(p.name || result.title),
       price,
@@ -40,13 +44,17 @@ function normalizeOffer(result: BraveWebResult): RawOffer | null {
       reviewCount: p.rating?.reviewCount ?? null,
       shippingPrice: detectFreeShipping(textBlob) ? 0 : null,
       shippingDate: parseShippingDate(textBlob),
-      availability: true,
+      availability: rawAvailability ? !/out.?of.?stock|sold.?out|disc?ontinued/i.test(rawAvailability) : true,
       condition: detectCondition(p.name || result.title),
       seller: store,
       source: "brave_search",
       priceConfident: true,
     };
   }
+
+  // Category/department landing pages ("Eletrônicos - Amazon.com.br") pass the
+  // storefront-domain check but aren't an actual product to compare.
+  if (isGenericCategoryTitle(result.title) || looksLikeListingUrl(result.url)) return null;
 
   const textBlob = [result.description, ...(result.extra_snippets ?? [])].join(" ");
   return {
@@ -62,7 +70,7 @@ function normalizeOffer(result: BraveWebResult): RawOffer | null {
     reviewCount: parseReviewCount(textBlob),
     shippingPrice: detectFreeShipping(textBlob) ? 0 : null,
     shippingDate: parseShippingDate(textBlob),
-    availability: null,
+    availability: detectUnavailable(textBlob) || detectUnavailable(result.title) ? false : null,
     condition: detectCondition(result.title),
     seller: store,
     source: "brave_search",

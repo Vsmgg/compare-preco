@@ -96,6 +96,94 @@ const AGGREGATOR_SEARCH_HOSTS = new Set(["buscape.com.br", "zoom.com.br", "jacot
 // path with a long numeric ad id points at a single real listing.
 const CLASSIFIEDS_REQUIRE_AD_ID = new Set(["olx.com.br", "webmotors.com.br", "icarros.com.br", "mobiauto.com.br"]);
 
+// Category/department landing pages ("Eletrônicos - Amazon.com.br") sometimes
+// rank well for broad queries but aren't an actual product to compare.
+const GENERIC_CATEGORY_TITLES = new Set([
+  "eletronicos",
+  "eletrodomesticos",
+  "informatica",
+  "celulares",
+  "celulares e smartphones",
+  "smartphones",
+  "casa",
+  "casa e decoracao",
+  "decoracao",
+  "moveis",
+  "carros",
+  "carros seminovos",
+  "carros novos",
+  "motos",
+  "motos seminovas",
+  "moda",
+  "roupas",
+  "roupas femininas",
+  "roupas masculinas",
+  "calcados",
+  "cameras",
+  "cameras fotograficas",
+  "ferramentas",
+  "games",
+  "consoles",
+  "video games",
+  "ofertas",
+  "promocoes",
+  "departamento",
+  "loja oficial",
+  "ver todos",
+  "todas as categorias",
+  "todos os produtos",
+]);
+
+const ACCENT_MAP: Record<string, string> = {
+  á: "a", à: "a", â: "a", ã: "a", ä: "a",
+  é: "e", è: "e", ê: "e", ë: "e",
+  í: "i", ì: "i", î: "i", ï: "i",
+  ó: "o", ò: "o", ô: "o", õ: "o", ö: "o",
+  ú: "u", ù: "u", û: "u", ü: "u",
+  ç: "c",
+};
+
+function stripAccents(text: string): string {
+  return text.replace(/[áàâãäéèêëíìîïóòôõöúùûüç]/g, (ch) => ACCENT_MAP[ch] ?? ch);
+}
+
+export function isGenericCategoryTitle(title: string): boolean {
+  const normalized = stripAccents(title.toLowerCase())
+    .replace(/[|].*$/, "")
+    .replace(/[-–—:].*$/, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return false;
+  if (/\d/.test(normalized)) return false;
+  if (normalized.split(" ").length > 4) return false;
+  return GENERIC_CATEGORY_TITLES.has(normalized);
+}
+
+const LISTING_PATH_PATTERNS =
+  /\/(c|categoria|category|departamento|dept|colecao|colecoes|collections?|l|lp)\/[a-z0-9-]+\/?(\?|$)|\/(s|busca|search)(\/|\?|$)|[?&](k|q|busca|node)=/i;
+
+export function looksLikeListingUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.toLowerCase();
+    if (path === "/" || path === "") return true;
+    const hasSpecificId = /\d{5,}/.test(path + parsed.search);
+    if (hasSpecificId) return false;
+    return LISTING_PATH_PATTERNS.test(path + parsed.search);
+  } catch {
+    return false;
+  }
+}
+
+const UNAVAILABLE_PATTERNS =
+  /\b(indispon[ií]vel|fora de estoque|sem estoque|esgotado|produto esgotado|out of stock|sold ?out|temporariamente indispon[ií]vel)\b/i;
+
+export function detectUnavailable(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return UNAVAILABLE_PATTERNS.test(text);
+}
+
 export function isLikelyStorefront(url: string, domain: string): boolean {
   if (EDITORIAL_BLACKLIST.has(domain)) return false;
   if (AGGREGATOR_SEARCH_HOSTS.has(domain)) {

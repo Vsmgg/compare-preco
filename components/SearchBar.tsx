@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const EXAMPLES = [
@@ -17,15 +17,15 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
   const router = useRouter();
   const [value, setValue] = useState(initialQuery);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const focused = useRef(false);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
-    if (value) return;
+    if (value || focused) return;
     const id = setInterval(() => {
       setPlaceholderIndex((i) => (i + 1) % EXAMPLES.length);
     }, 2600);
     return () => clearInterval(id);
-  }, [value]);
+  }, [value, focused]);
 
   function submit() {
     const q = value.trim();
@@ -40,10 +40,11 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onFocus={() => (focused.current = true)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder={EXAMPLES[placeholderIndex]}
-          className="w-full bg-transparent px-3 py-3.5 text-base text-text placeholder:text-text-muted focus:outline-none sm:text-lg"
+          className="w-full bg-transparent px-3 py-3.5 text-base text-text placeholder:text-text-muted focus:outline-none focus-visible:outline-none sm:text-lg"
           aria-label="O que você está procurando?"
         />
         <button

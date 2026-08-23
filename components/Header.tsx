@@ -40,7 +40,7 @@ export function Header() {
         </div>
 
         <button
-          className="text-text md:hidden"
+          className="-mr-2 p-2 text-text md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Fechar menu" : "Abrir menu"}
         >

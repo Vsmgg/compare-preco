@@ -23,7 +23,7 @@ export interface BraveProduct {
   price: string;
   thumbnail?: { src: string; original: string };
   description?: string;
-  offers?: { url: string; priceCurrency: string; price: string }[];
+  offers?: { url: string; priceCurrency: string; price: string; availability?: string }[];
   rating?: { ratingValue: number; bestRating: number; reviewCount: number };
 }
 

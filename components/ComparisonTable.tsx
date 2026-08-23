@@ -16,6 +16,7 @@ export interface CompareOffer {
   shippingDate: string | null;
   shippingPrice: number | null;
   condition: string | null;
+  availability: boolean | null;
   score: number | null;
   trustLabel: string;
 }
@@ -51,11 +52,18 @@ export function ComparisonTable({ offers }: { offers: CompareOffer[] }) {
                   )}
                 </div>
                 <p className="mt-2 line-clamp-2 text-xs font-medium text-text">{o.title}</p>
-                {o.id === bestId && (
-                  <span className="mt-1 inline-block rounded-full bg-red px-2 py-0.5 text-[10px] font-semibold text-white">
-                    Recomendado
-                  </span>
-                )}
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {o.id === bestId && (
+                    <span className="inline-block rounded-full bg-red px-2 py-0.5 text-[10px] font-semibold text-white">
+                      Recomendado
+                    </span>
+                  )}
+                  {o.availability === false && (
+                    <span className="inline-block rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                      Indisponível
+                    </span>
+                  )}
+                </div>
               </th>
             ))}
           </tr>
@@ -76,6 +84,7 @@ export function ComparisonTable({ offers }: { offers: CompareOffer[] }) {
             values={offers.map((o) => (o.shippingPrice === 0 ? "Grátis" : o.shippingPrice != null ? currency(o.shippingPrice) : "Não informado"))}
           />
           <Row label="Condição" values={offers.map((o) => o.condition ?? "Não informado")} />
+          <Row label="Disponibilidade" values={offers.map((o) => (o.availability === false ? "Indisponível" : "Disponível"))} />
           <Row label="Confiabilidade" values={offers.map((o) => o.trustLabel)} />
           <Row
             label="Índice Compare"

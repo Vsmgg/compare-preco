@@ -64,6 +64,7 @@ export function OfferCard({
           <span className="rounded-md bg-card-secondary px-1.5 py-0.5 font-mono text-[11px] text-text-muted">
             #{offer.rank}
           </span>
+          {offer.availability === false && <OfferBadge label="Indisponível" />}
           {offer.badges.map((b) => (
             <OfferBadge key={b} label={b} />
           ))}

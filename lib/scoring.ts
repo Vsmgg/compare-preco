@@ -78,13 +78,17 @@ export function scoreOffer(offer: RawOffer, ctx: ScoreContext) {
 
   const w = ctx.weights;
   const totalWeight = w.price + w.rating + w.trust + w.delivery + w.condition || 1;
-  const score =
+  let score =
     (subScores.price * w.price +
       subScores.rating * w.rating +
       subScores.trust * w.trust +
       subScores.delivery * w.delivery +
       subScores.condition * w.condition) /
     totalWeight;
+
+  // An unavailable offer should never outrank an in-stock one, even if it
+  // otherwise scores well on price/rating/trust.
+  if (offer.availability === false) score *= 0.3;
 
   return {
     score: Math.round(score * 10) / 10,

@@ -10,6 +10,7 @@ import { Rating } from "@/components/Rating";
 import { StoreBadge } from "@/components/StoreBadge";
 import { ShippingBadge } from "@/components/ShippingBadge";
 import { PriceChart } from "@/components/PriceChart";
+import { OfferBadge } from "@/components/OfferBadge";
 import { trustLabel as computeTrustLabel } from "@/lib/scoring";
 import type { Condition } from "@/lib/types";
 
@@ -28,6 +29,7 @@ interface OfferRow {
   review_count: number | null;
   shipping_price: string | null;
   shipping_date: string | null;
+  availability: boolean | null;
   condition: Condition;
   score: string | null;
   rank: number | null;
@@ -102,7 +104,10 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div>
-              <StoreBadge store={offer.store} trustLabel={label} />
+              <div className="flex flex-wrap items-center gap-2">
+                <StoreBadge store={offer.store} trustLabel={label} />
+                {offer.availability === false && <OfferBadge label="Indisponível" />}
+              </div>
               <h1 className="mt-2 font-display text-2xl font-bold text-text sm:text-3xl">{offer.title}</h1>
               <div className="mt-3 flex flex-wrap items-center gap-4">
                 <Rating rating={rating} reviewCount={offer.review_count} />
