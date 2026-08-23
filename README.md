@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Compare Preço
 
-## Getting Started
+Comparador de preços com IA. O usuário pesquisa um produto, a IA interpreta a intenção, o sistema busca ofertas reais na web (Brave Search), normaliza e rankeia por preço, avaliação, confiabilidade e entrega, e a IA (Gemini) explica a recomendação. Nenhum dado é inventado — quando algo não é encontrado, o site mostra "Não informado".
 
-First, run the development server:
+## Stack
+
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Framer Motion · Neon Postgres · Gemini · Brave Search API
+
+## Setup local
 
 ```bash
+npm install
+cp .env.example .env.local   # preencha com suas credenciais
+node scripts/migrate.mjs      # cria as tabelas no Postgres (usa DATABASE_URL_UNPOOLED)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variáveis de ambiente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Veja `.env.example`. Todas são usadas apenas no servidor (nunca expostas ao navegador):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL` — conexão pooled com o Postgres (Neon), usada em runtime.
+- `DATABASE_URL_UNPOOLED` — conexão direta, usada só pelo script de migração.
+- `GEMINI_API_KEY` — interpretação de intenção e explicação do ranking.
+- `BRAVE_API_KEY` — busca web e de imagens para encontrar ofertas reais.
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+vercel link
+vercel env add DATABASE_URL production
+vercel env add DATABASE_URL_UNPOOLED production
+vercel env add GEMINI_API_KEY production
+vercel env add BRAVE_API_KEY production
+vercel --prod
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Estrutura
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `lib/pipeline.ts` — orquestra a busca: interpreta intenção → busca no Brave → normaliza → dedup → pontua → Gemini explica → persiste no banco.
+- `lib/scoring.ts` — score determinístico (preço/avaliação/confiabilidade/entrega/condição), não gerado pela IA.
+- `app/api/search/route.ts` — streaming (SSE) do progresso da busca em tempo real.
+- `migrations/001_init.sql` — schema (`searches`, `products`, `offers`, `search_results`, `price_history`, `clicks`).

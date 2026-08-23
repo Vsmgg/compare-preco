@@ -1,69 +1,140 @@
-import Image from "next/image";
+"use client";
+
+import {
+  Smartphone,
+  Laptop,
+  Home as HomeIcon,
+  Car,
+  Bike,
+  Gamepad2,
+  Shirt,
+  Camera,
+  Wrench,
+  Search,
+  ShieldCheck,
+  Truck,
+  Sparkles,
+} from "lucide-react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { SearchBar } from "@/components/SearchBar";
+import { CategoryCard } from "@/components/CategoryCard";
+import { ParticleBackground } from "@/components/ParticleBackground";
+
+const CATEGORIES = [
+  { icon: Smartphone, label: "Eletrônicos", query: "eletrônicos" },
+  { icon: Laptop, label: "Informática", query: "notebook" },
+  { icon: HomeIcon, label: "Casa", query: "casa e decoração" },
+  { icon: Car, label: "Carros", query: "carro seminovo" },
+  { icon: Bike, label: "Motos", query: "moto" },
+  { icon: Gamepad2, label: "Games", query: "console de videogame" },
+  { icon: Shirt, label: "Moda", query: "tênis esportivo" },
+  { icon: Camera, label: "Câmeras", query: "câmera fotográfica" },
+  { icon: Wrench, label: "Ferramentas", query: "furadeira" },
+];
+
+const HOW_IT_WORKS = [
+  {
+    icon: Search,
+    title: "Você pesquisa",
+    text: "Digite qualquer produto, marca ou intenção de compra — do jeito que você fala.",
+  },
+  {
+    icon: Sparkles,
+    title: "A IA compara",
+    text: "Buscamos ofertas reais na web, coletamos preço, avaliação, frete e prazo, e rankeamos tudo.",
+  },
+  {
+    icon: Truck,
+    title: "Você escolhe melhor",
+    text: "Veja a melhor opção, o menor preço e a entrega mais rápida — e vá direto para o anúncio.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <Header />
+      <main className="flex-1">
+        <section className="relative overflow-hidden border-b border-border">
+          <ParticleBackground />
+          <div
+            className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-red/20 blur-[140px]"
+            aria-hidden
+          />
+          <div className="relative mx-auto max-w-4xl px-4 pb-20 pt-20 text-center sm:px-6 sm:pb-28 sm:pt-28 lg:px-8">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-4 py-1.5 text-xs font-medium text-text-muted">
+              <Sparkles size={13} className="text-red-soft" />
+              Você procura. A IA compara. Você escolhe melhor.
+            </span>
+
+            <h1 className="mt-6 font-display text-4xl font-bold leading-[1.05] tracking-tight text-text sm:text-6xl">
+              Compare <span className="text-gradient-red">antes</span> de comprar.
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-xl text-balance text-base text-text-muted sm:text-lg">
+              A IA pesquisa a internet, compara preços, avaliações, entrega e confiabilidade para
+              encontrar as melhores opções para você.
+            </p>
+
+            <div className="mx-auto mt-10 max-w-2xl">
+              <SearchBar />
+            </div>
+
+            <p className="mt-4 text-xs text-text-muted">
+              Sem cadastro. Resultados baseados em dados reais encontrados na web.
+            </p>
+          </div>
+        </section>
+
+        <section id="categorias" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8 flex items-end justify-between">
+            <h2 className="font-display text-2xl font-bold text-text sm:text-3xl">
+              O que você quer comparar?
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {CATEGORIES.map((c) => (
+              <CategoryCard key={c.label} {...c} />
+            ))}
+          </div>
+        </section>
+
+        <section id="como-funciona" className="border-t border-border bg-card/40">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <h2 className="text-center font-display text-2xl font-bold text-text sm:text-3xl">
+              Como o Compare Preço funciona
+            </h2>
+            <div className="mt-12 grid gap-6 sm:grid-cols-3">
+              {HOW_IT_WORKS.map((step, i) => (
+                <div key={step.title} className="relative rounded-2xl border border-border bg-card p-6">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-red/15 text-red-soft">
+                    <step.icon size={20} />
+                  </span>
+                  <h3 className="mt-4 font-display text-lg font-semibold text-text">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-muted">{step.text}</p>
+                  {i < HOW_IT_WORKS.length - 1 && (
+                    <div className="absolute -right-3 top-1/2 hidden h-px w-6 -translate-y-1/2 bg-border sm:block" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-text-muted">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={14} className="text-red-soft" /> Nunca fabricamos dados
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Truck size={14} className="text-red-soft" /> Link direto para a loja original
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Sparkles size={14} className="text-red-soft" /> Ranking explicado pela IA
+              </span>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+      <Footer />
+    </>
   );
 }
