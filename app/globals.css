@@ -109,6 +109,14 @@ body {
   outline-offset: 2px;
 }
 
+/* Inputs that live inside a rounded, custom-styled container (e.g. the
+   search bar) show their own focus affordance on the container itself
+   via :focus-within — the browser's square focus-visible outline on the
+   input would otherwise poke out past the rounded corners. */
+.focus-ring-inherit:focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

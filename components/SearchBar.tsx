@@ -44,12 +44,12 @@ export function SearchBar({ initialQuery = "" }: { initialQuery?: string }) {
           onBlur={() => setFocused(false)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder={EXAMPLES[placeholderIndex]}
-          className="w-full bg-transparent px-3 py-3.5 text-base text-text placeholder:text-text-muted focus:outline-none focus-visible:outline-none sm:text-lg"
+          className="focus-ring-inherit w-full bg-transparent px-3 py-3.5 text-base text-text placeholder:text-text-muted sm:text-lg"
           aria-label="O que você está procurando?"
         />
         <button
           onClick={submit}
-          className="flex shrink-0 items-center gap-2 rounded-xl bg-red px-4 py-3.5 text-sm font-semibold text-white transition-transform hover:bg-red-soft active:scale-95 sm:px-6"
+          className="focus-ring-inherit flex shrink-0 items-center gap-2 rounded-xl bg-red px-4 py-3.5 text-sm font-semibold text-white transition-transform hover:bg-red-soft active:scale-95 sm:px-6"
         >
           <span className="hidden sm:inline">Comparar preços</span>
           <ArrowRight size={18} />
