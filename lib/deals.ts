@@ -22,13 +22,19 @@ export interface FeaturedDealsResult {
 // instead of hoping an open web search happens to surface one.
 const DEAL_QUERIES = [
   "smart tv 65 polegadas oferta site:amazon.com.br",
+  "smart tv 65 polegadas oferta site:casasbahia.com.br",
   "iphone oferta site:amazon.com.br",
+  "iphone oferta site:magazineluiza.com.br",
   "notebook gamer oferta site:kabum.com.br",
+  "notebook oferta site:amazon.com.br",
   "geladeira frost free oferta site:magazineluiza.com.br",
+  "geladeira frost free oferta site:casasbahia.com.br",
   "smartwatch oferta site:amazon.com.br",
   "playstation 5 oferta site:magazineluiza.com.br",
+  "playstation 5 oferta site:amazon.com.br",
   "câmera mirrorless oferta site:amazon.com.br",
   "ipad oferta site:fastshop.com.br",
+  "ipad oferta site:amazon.com.br",
   "monitor gamer oferta site:kabum.com.br",
   "fone de ouvido premium oferta site:amazon.com.br",
   "máquina de lavar oferta site:casasbahia.com.br",
@@ -36,7 +42,8 @@ const DEAL_QUERIES = [
 ];
 
 const MIN_PRICE = 2000;
-const MAX_CANDIDATES = 40;
+const RESULTS_PER_QUERY = 20;
+const MAX_CANDIDATES = 60;
 const MAX_DEALS = 15;
 
 interface Candidate {
@@ -47,7 +54,7 @@ interface Candidate {
 export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
   const rawResults: BraveWebResult[] = [];
   for (const query of DEAL_QUERIES) {
-    const results = await braveWebSearch(query, 12);
+    const results = await braveWebSearch(query, RESULTS_PER_QUERY);
     rawResults.push(...results);
   }
 
