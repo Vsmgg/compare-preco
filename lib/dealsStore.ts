@@ -42,6 +42,7 @@ interface FeaturedDealRow {
   availability: boolean | null;
   condition: string | null;
   seller: string | null;
+  verified_at: string;
 }
 
 // Only surfaces deals verified within the last few days — commercial data
@@ -90,5 +91,6 @@ export async function loadFeaturedDeals(): Promise<FeaturedDeal[]> {
     seller: r.seller,
     source: "brave_search",
     priceConfident: true,
+    verifiedAt: r.verified_at,
   }));
 }

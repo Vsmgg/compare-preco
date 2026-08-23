@@ -56,6 +56,10 @@ export function AIRecommendation({ analysis }: { analysis: AIAnalysis }) {
           )}
         </div>
       )}
+
+      <p className="mt-5 border-t border-border pt-3 text-[11px] text-text-muted/70">
+        Análise gerada a partir apenas das ofertas reais listadas acima — nenhum dado foi estimado ou completado.
+      </p>
     </div>
   );
 }

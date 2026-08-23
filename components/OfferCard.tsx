@@ -31,7 +31,7 @@ export function OfferCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.4) }}
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-red/30 sm:flex-row sm:items-center"
+      className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-red/30 hover:shadow-lg hover:shadow-black/20 sm:flex-row sm:items-center"
     >
       <div className="flex items-start gap-3 sm:items-center">
         {onToggleSelect && (
@@ -86,7 +86,13 @@ export function OfferCard({
 
       <div className="flex shrink-0 flex-row items-center justify-between gap-4 border-t border-border pt-3 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0">
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs text-text-muted">{Math.round(offer.score)}</span>
+          <span
+            className="flex flex-col items-center font-mono text-xs text-text-muted"
+            title="Índice Compare: combina preço, avaliação, confiabilidade e entrega"
+          >
+            <span className="font-semibold text-text">{Math.round(offer.score)}</span>
+            <span className="text-[9px] uppercase tracking-wide">índice</span>
+          </span>
           <PriceDisplay price={offer.price} originalPrice={offer.originalPrice} size="sm" />
         </div>
         <a

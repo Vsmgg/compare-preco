@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Flame } from "lucide-react";
+import { Flame, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DealCard } from "@/components/DealCard";
@@ -40,9 +40,19 @@ export default async function DestaquesPage() {
           <h1 className="mt-2 font-display text-2xl font-bold text-text sm:text-3xl">
             Promoções em <span className="text-gradient-red">destaque</span> no Brasil
           </h1>
-          <p className="mt-1 text-sm text-text-muted">
-            A IA vasculha a web em busca de descontos reais e confirmados, de qualquer valor.
+          <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-text-muted">
+            A IA vasculha a web em busca de descontos reais, de qualquer valor. Cada preço original é conferido
+            diretamente na fonte antes de entrar aqui — sem estimativas, sem percentuais calculados.
           </p>
+
+          <div className="mt-4 flex items-start gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-4 py-3 text-xs text-text-muted">
+            <ShieldCheck size={15} className="mt-0.5 shrink-0 text-emerald-400" />
+            <span>
+              <span className="font-semibold text-text">Só mostramos o que conseguimos confirmar.</span> Se não há
+              evidência clara de desconto na própria loja, o produto simplesmente não aparece — preferimos uma lista
+              curta e correta a uma lista longa e incerta.
+            </span>
+          </div>
 
           {intro && (
             <p className="mt-5 max-w-2xl rounded-2xl border border-border bg-card p-4 text-sm leading-relaxed text-text-muted">
@@ -51,11 +61,16 @@ export default async function DestaquesPage() {
           )}
 
           {!failed && deals.length > 0 && (
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {deals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
-              ))}
-            </div>
+            <>
+              <p className="mt-8 text-xs font-medium uppercase tracking-wide text-text-muted">
+                {deals.length} {deals.length === 1 ? "oferta verificada" : "ofertas verificadas"}
+              </p>
+              <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {deals.map((deal) => (
+                  <DealCard key={deal.id} deal={deal} />
+                ))}
+              </div>
+            </>
           )}
 
           {!failed && deals.length === 0 && (

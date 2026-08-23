@@ -1,4 +1,11 @@
 import Image from "next/image";
+import { ShieldCheck, Ban, Link as LinkIcon } from "lucide-react";
+
+const TRUST_POINTS = [
+  { icon: Ban, text: "Nunca inventamos preço, avaliação ou disponibilidade" },
+  { icon: ShieldCheck, text: "Cada dado exibido veio de uma fonte real e verificável" },
+  { icon: LinkIcon, text: "Link direto para o anúncio original na loja" },
+];
 
 export function Footer() {
   return (
@@ -10,10 +17,19 @@ export function Footer() {
             Você procura. A IA compara. Você escolhe melhor.
           </p>
         </div>
-        <p className="mt-8 text-center text-xs leading-relaxed text-text-muted/70 sm:text-left">
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 border-y border-border py-5 sm:justify-start">
+          {TRUST_POINTS.map(({ icon: Icon, text }) => (
+            <span key={text} className="flex items-center gap-1.5 text-xs text-text-muted">
+              <Icon size={14} className="shrink-0 text-emerald-400" />
+              {text}
+            </span>
+          ))}
+        </div>
+
+        <p className="mt-6 text-center text-xs leading-relaxed text-text-muted/70 sm:text-left">
           O Compare Preço pesquisa ofertas reais na web e nunca fabrica preço, avaliação, prazo ou disponibilidade.
-          Quando um dado não é encontrado, mostramos “Não informado”. Os links de oferta redirecionam diretamente
-          para o anúncio original na loja.
+          Quando um dado não pode ser confirmado, mostramos “Não informado” em vez de arriscar um valor incorreto.
         </p>
       </div>
     </footer>

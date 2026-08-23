@@ -9,6 +9,8 @@ export interface FeaturedDeal extends RawOffer {
   price: number;
   originalPrice: number;
   discountPercent: number;
+  /** ISO timestamp of when this discount was last confirmed against the source. Null for a deal not yet persisted. */
+  verifiedAt: string | null;
 }
 
 export interface FeaturedDealsResult {
@@ -162,6 +164,7 @@ export async function getFeaturedDeals(options: DiscoverDealsOptions = {}): Prom
         id: crypto.randomUUID(),
         originalPrice,
         discountPercent: Math.round((1 - candidate.offer.price / originalPrice) * 100),
+        verifiedAt: new Date().toISOString() as string | null,
       };
     })
     .filter((d): d is FeaturedDeal => d !== null)
