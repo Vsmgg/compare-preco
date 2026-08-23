@@ -15,21 +15,23 @@ export interface FeaturedDealsResult {
   intro: string;
 }
 
-// A spread of high-ticket categories that regularly carry real discounts and
-// tend to sell well above the R$ 2.000 floor this page is meant to show.
+// Named models (instead of generic category terms) surface far more
+// structured "product" results from Brave — which is where real, reliable
+// price and discount data actually comes from — while still spanning a
+// spread of high-ticket categories that regularly sell above R$ 2.000.
 const DEAL_QUERIES = [
-  "smart tv 65 polegadas desconto oferta",
-  "iphone desconto oferta",
-  "notebook gamer desconto oferta",
-  "geladeira frost free desconto oferta",
-  "smartwatch desconto oferta",
-  "console playstation 5 desconto oferta",
-  "câmera mirrorless desconto oferta",
-  "tablet ipad desconto oferta",
-  "monitor gamer desconto oferta",
-  "fone de ouvido premium desconto oferta",
-  "máquina de lavar desconto oferta",
-  "ar condicionado desconto oferta",
+  "iPhone 15 Pro Max 256GB oferta",
+  "Samsung Galaxy S24 Ultra oferta",
+  "Smart TV Samsung 65 polegadas 4K oferta",
+  "Notebook Dell Inspiron oferta",
+  "PlayStation 5 Slim oferta",
+  "Geladeira Brastemp Frost Free oferta",
+  "Apple Watch Series 9 oferta",
+  "iPad Pro oferta",
+  "Sony WH-1000XM5 oferta",
+  "Máquina de lavar Brastemp 12kg oferta",
+  "Notebook gamer Acer Nitro oferta",
+  "Câmera Canon EOS oferta",
 ];
 
 const MIN_PRICE = 2000;
