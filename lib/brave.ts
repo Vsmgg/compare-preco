@@ -51,7 +51,6 @@ export async function braveWebSearch(query: string, count = 8): Promise<BraveWeb
   const url = `${BRAVE_WEB_ENDPOINT}?q=${encodeURIComponent(query)}&count=${count}&country=BR&search_lang=pt-br&safesearch=moderate`;
   const res = await fetch(url, {
     headers: { Accept: "application/json", "X-Subscription-Token": apiKey() },
-    cache: "no-store",
   });
   if (!res.ok) {
     console.error("Brave web search falhou", res.status, await res.text());
@@ -66,7 +65,6 @@ export async function braveImageSearch(query: string, count = 6): Promise<BraveI
   const url = `${BRAVE_IMAGE_ENDPOINT}?q=${encodeURIComponent(query)}&count=${count}&country=BR&search_lang=pt-br&safesearch=strict`;
   const res = await fetch(url, {
     headers: { Accept: "application/json", "X-Subscription-Token": apiKey() },
-    cache: "no-store",
   });
   if (!res.ok) {
     console.error("Brave image search falhou", res.status, await res.text());
