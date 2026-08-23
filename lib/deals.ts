@@ -1,6 +1,6 @@
 import { braveWebSearch, type BraveWebResult } from "./brave";
-import { summarizeDeals } from "./gemini";
-import { dedupe, normalizeOffer } from "./pipeline";
+import { checkDiscounts, summarizeDeals } from "./gemini";
+import { normalizeOffer } from "./pipeline";
 import type { RawOffer } from "./types";
 
 export interface FeaturedDeal extends RawOffer {
@@ -33,7 +33,13 @@ const DEAL_QUERIES = [
 ];
 
 const MIN_PRICE = 2000;
+const MAX_CANDIDATES = 40;
 const MAX_DEALS = 15;
+
+interface Candidate {
+  offer: RawOffer & { price: number };
+  text: string;
+}
 
 export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
   const rawResults: BraveWebResult[] = [];
@@ -42,20 +48,49 @@ export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
     rawResults.push(...results);
   }
 
-  const normalized = rawResults.map(normalizeOffer).filter((o): o is RawOffer => o !== null);
-  const unique = dedupe(normalized);
+  const seenUrls = new Set<string>();
+  const candidates: Candidate[] = [];
+  for (const result of rawResults) {
+    const offer = normalizeOffer(result);
+    if (!offer || offer.price == null || offer.price < MIN_PRICE) continue;
 
-  const withDiscount = unique.filter(
-    (o): o is RawOffer & { price: number; originalPrice: number } =>
-      o.price != null && o.price >= MIN_PRICE && o.originalPrice != null && o.originalPrice > o.price,
-  );
+    const urlKey = offer.productUrl.split("?")[0].replace(/\/$/, "");
+    if (seenUrls.has(urlKey)) continue;
+    seenUrls.add(urlKey);
 
-  const deals: FeaturedDeal[] = withDiscount
-    .map((offer) => ({
-      ...offer,
-      id: crypto.randomUUID(),
-      discountPercent: Math.round((1 - offer.price / offer.originalPrice) * 100),
-    }))
+    // originalPrice already found by the regex-based parser is a free win —
+    // still worth double-checking with Gemini so obviously-wrong percentage
+    // guesses don't sneak in, but no need to spend a candidate slot twice.
+    const text = [result.title, result.description, ...(result.extra_snippets ?? [])].join(" ");
+    candidates.push({ offer: { ...offer, price: offer.price }, text });
+  }
+
+  const topCandidates = candidates.slice(0, MAX_CANDIDATES);
+
+  let discountResults: Awaited<ReturnType<typeof checkDiscounts>> = [];
+  try {
+    discountResults = await checkDiscounts(
+      topCandidates.map((c, id) => ({ id, title: c.offer.title, price: c.offer.price, text: c.text })),
+    );
+  } catch (err) {
+    console.error("Falha ao verificar descontos com Gemini", err);
+  }
+
+  const byId = new Map(discountResults.map((r) => [r.id, r]));
+
+  const deals: FeaturedDeal[] = topCandidates
+    .map((candidate, id) => {
+      const verdict = byId.get(id);
+      const originalPrice = verdict?.hasDiscount ? (verdict.originalPrice ?? candidate.offer.originalPrice) : null;
+      if (originalPrice == null || originalPrice <= candidate.offer.price) return null;
+      return {
+        ...candidate.offer,
+        id: crypto.randomUUID(),
+        originalPrice,
+        discountPercent: Math.round((1 - candidate.offer.price / originalPrice) * 100),
+      };
+    })
+    .filter((d): d is FeaturedDeal => d !== null)
     .sort((a, b) => b.discountPercent - a.discountPercent)
     .slice(0, MAX_DEALS);
 

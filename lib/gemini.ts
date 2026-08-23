@@ -135,6 +135,66 @@ Escreva, em português brasileiro, uma análise curta e direta explicando por qu
   };
 }
 
+export interface DiscountCandidate {
+  id: number;
+  title: string;
+  price: number;
+  text: string;
+}
+
+export interface DiscountResult {
+  id: number;
+  hasDiscount: boolean;
+  originalPrice: number | null;
+}
+
+// Real Brave snippets rarely spell out "de R$ X por R$ Y" — they're mostly
+// generic marketing copy. Gemini reads each snippet and decides whether it
+// actually implies a discount, instead of relying only on rigid regexes.
+export async function checkDiscounts(candidates: DiscountCandidate[]): Promise<DiscountResult[]> {
+  if (candidates.length === 0) return [];
+  const ai = client();
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `Você verifica descontos reais para o Compare Preço. Para cada item da lista, com base SOMENTE no texto fornecido (title/text, que vem de um resultado de busca real), diga se há evidência clara de que o preço atual é promocional (preço original/riscado mencionado, "de X por Y", percentual de desconto, "oferta", "liquidação" com valor anterior citado, etc.).
+
+Regras importantes:
+- Só marque hasDiscount=true se o texto realmente mencionar ou permitir calcular um preço ORIGINAL maior que o campo "price" de cada item.
+- Se mencionar apenas "oferta" ou "promoção" sem nenhum valor original, hasDiscount=false.
+- Nunca invente um originalPrice que não seja dedutível do texto. Se não conseguir calcular um número, use null mesmo com hasDiscount=true.
+- originalPrice deve ser sempre maior que o price do item.
+
+Itens:
+${JSON.stringify(candidates, null, 2)}`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            id: { type: Type.NUMBER },
+            hasDiscount: { type: Type.BOOLEAN },
+            originalPrice: { type: Type.NUMBER, nullable: true },
+          },
+          required: ["id", "hasDiscount"],
+        },
+      },
+    },
+  });
+
+  const parsed = JSON.parse(response.text ?? "[]");
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((r) => typeof r?.id === "number")
+    .map((r) => ({
+      id: r.id,
+      hasDiscount: !!r.hasDiscount,
+      originalPrice: typeof r.originalPrice === "number" ? r.originalPrice : null,
+    }));
+}
+
 export interface DealSummaryInput {
   title: string;
   store: string;
