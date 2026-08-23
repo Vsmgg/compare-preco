@@ -64,6 +64,25 @@ export const DEFAULT_DEAL_QUERIES = [
   "tablet oferta site:magazineluiza.com.br",
   "bicicleta oferta site:mercadolivre.com.br",
   "mochila oferta site:americanas.com.br",
+  // Hardware/electronics retailers tend to publish an explicit "de/por"
+  // price pair more consistently than general marketplaces — this group
+  // leans into that.
+  "notebook site:amazon.com.br liquidação",
+  "smart tv site:kabum.com.br liquidação",
+  "placa de vídeo site:pichau.com.br oferta",
+  "monitor site:terabyteshop.com.br oferta",
+  "processador site:kabum.com.br oferta",
+  "memória ram site:kabum.com.br oferta",
+  "ssd site:kabum.com.br oferta",
+  "fonte gamer site:pichau.com.br oferta",
+  "gabinete gamer site:pichau.com.br oferta",
+  "cadeira gamer site:kabum.com.br oferta",
+  "headset gamer site:kabum.com.br oferta",
+  "teclado mecânico site:kabum.com.br oferta",
+  "mouse gamer site:kabum.com.br oferta",
+  "console xbox series site:kabum.com.br oferta",
+  "smartphone site:kabum.com.br oferta",
+  "notebook site:pichau.com.br oferta",
 ];
 
 const DEFAULT_RESULTS_PER_QUERY = 15;
