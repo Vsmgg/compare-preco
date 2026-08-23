@@ -3,27 +3,24 @@ import { Flame } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DealCard } from "@/components/DealCard";
-import { getFeaturedDeals } from "@/lib/deals";
+import { loadDealsIntro, loadFeaturedDeals } from "@/lib/dealsStore";
+import type { FeaturedDeal } from "@/lib/deals";
 
 export const metadata: Metadata = {
   title: "Destaques com desconto",
 };
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
-export const revalidate = 43200; // 12 horas
 
 export default async function DestaquesPage() {
-  let deals: Awaited<ReturnType<typeof getFeaturedDeals>>["deals"] = [];
+  let deals: FeaturedDeal[] = [];
   let intro = "";
   let failed = false;
 
   try {
-    const result = await getFeaturedDeals();
-    deals = result.deals;
-    intro = result.intro;
+    [deals, intro] = await Promise.all([loadFeaturedDeals(), loadDealsIntro()]);
   } catch (err) {
-    console.error("Falha ao buscar destaques", err);
+    console.error("Falha ao carregar destaques", err);
     failed = true;
   }
 
@@ -40,8 +37,7 @@ export default async function DestaquesPage() {
             Promoções em <span className="text-gradient-red">destaque</span> no Brasil
           </h1>
           <p className="mt-1 text-sm text-text-muted">
-            A IA vasculha a web em busca de descontos reais e confirmados, de qualquer valor. Atualiza a cada 12
-            horas.
+            A IA vasculha a web em busca de descontos reais e confirmados, de qualquer valor.
           </p>
 
           {intro && (

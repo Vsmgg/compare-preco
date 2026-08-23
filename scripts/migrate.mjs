@@ -9,7 +9,7 @@ function loadEnvLocal() {
   if (!fs.existsSync(envPath)) return;
   for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
     const m = line.match(/^([A-Z_]+)=(.*)$/);
-    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim().replace(/^"(.*)"$/, "$1");
   }
 }
 
@@ -21,14 +21,21 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const sql = fs.readFileSync(path.join(ROOT, "migrations", "001_init.sql"), "utf8");
+const migrationsDir = path.join(ROOT, "migrations");
+const files = fs
+  .readdirSync(migrationsDir)
+  .filter((f) => f.endsWith(".sql"))
+  .sort();
 
 const client = new pg.Client({ connectionString });
 
 async function main() {
   await client.connect();
-  await client.query(sql);
-  console.log("Migração aplicada com sucesso.");
+  for (const file of files) {
+    const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+    await client.query(sql);
+    console.log(`Migração aplicada: ${file}`);
+  }
   await client.end();
 }
 

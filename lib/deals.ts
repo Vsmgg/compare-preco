@@ -20,39 +20,82 @@ export interface FeaturedDealsResult {
 // site:-operator technique the main search pipeline uses) makes it far more
 // likely results actually come from a real store with genuine listed prices,
 // instead of hoping an open web search happens to surface one. Spans a mix
-// of ticket sizes since there's no minimum price anymore — this is meant to
-// surface real Brazilian promotions in general, not just high-end items.
-const DEAL_QUERIES = [
+// of ticket sizes and categories since there's no minimum price — this is
+// meant to surface real Brazilian promotions in general, not just
+// high-end items.
+export const DEFAULT_DEAL_QUERIES = [
   "smart tv oferta site:amazon.com.br",
+  "smart tv oferta site:magazineluiza.com.br",
+  "smart tv oferta site:casasbahia.com.br",
   "iphone oferta site:amazon.com.br",
+  "iphone oferta site:magazineluiza.com.br",
+  "smartphone oferta site:amazon.com.br",
+  "smartphone oferta site:mercadolivre.com.br",
   "notebook oferta site:kabum.com.br",
+  "notebook oferta site:amazon.com.br",
+  "notebook gamer oferta site:pichau.com.br",
+  "placa de video oferta site:kabum.com.br",
+  "placa de video oferta site:terabyteshop.com.br",
+  "processador oferta site:pichau.com.br",
+  "monitor gamer oferta site:kabum.com.br",
   "tênis oferta site:netshoes.com.br",
+  "tênis oferta site:centauro.com.br",
+  "roupa oferta site:netshoes.com.br",
   "perfume importado oferta site:amazon.com.br",
+  "perfume importado oferta site:magazineluiza.com.br",
   "fone de ouvido oferta site:amazon.com.br",
+  "fone de ouvido oferta site:kabum.com.br",
   "smartwatch oferta site:amazon.com.br",
+  "câmera oferta site:amazon.com.br",
   "playstation 5 oferta site:amazon.com.br",
+  "playstation 5 oferta site:magazineluiza.com.br",
+  "xbox oferta site:amazon.com.br",
   "geladeira oferta site:magazineluiza.com.br",
+  "geladeira oferta site:casasbahia.com.br",
+  "máquina de lavar oferta site:magazineluiza.com.br",
+  "máquina de lavar oferta site:casasbahia.com.br",
+  "ar condicionado oferta site:magazineluiza.com.br",
+  "micro-ondas oferta site:casasbahia.com.br",
+  "aspirador de pó oferta site:amazon.com.br",
+  "air fryer oferta site:amazon.com.br",
   "brinquedo oferta site:amazon.com.br",
+  "brinquedo oferta site:mercadolivre.com.br",
+  "tablet oferta site:amazon.com.br",
+  "tablet oferta site:magazineluiza.com.br",
+  "bicicleta oferta site:mercadolivre.com.br",
+  "mochila oferta site:americanas.com.br",
 ];
 
-// Every query costs ~1.1s of throttling plus network time, and the whole
-// page has a hard 60s ceiling (maxDuration below) — keep this comfortably
-// under budget so a cold start or a slow Gemini call can never push it over
-// and turn the page into a 504.
-const RESULTS_PER_QUERY = 15;
-const MAX_CANDIDATES = 30;
-const MAX_DEALS = 15;
+const DEFAULT_RESULTS_PER_QUERY = 15;
+const DEFAULT_MAX_CANDIDATES = 150;
+const DEFAULT_MAX_DEALS = 30;
+const DISCOUNT_CHECK_BATCH_SIZE = 25;
+
+export interface DiscoverDealsOptions {
+  queries?: string[];
+  resultsPerQuery?: number;
+  maxCandidates?: number;
+  maxDeals?: number;
+  onProgress?: (message: string) => void;
+}
 
 interface Candidate {
   offer: RawOffer & { price: number };
   text: string;
 }
 
-export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
+export async function getFeaturedDeals(options: DiscoverDealsOptions = {}): Promise<FeaturedDealsResult> {
+  const queries = options.queries ?? DEFAULT_DEAL_QUERIES;
+  const resultsPerQuery = options.resultsPerQuery ?? DEFAULT_RESULTS_PER_QUERY;
+  const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_CANDIDATES;
+  const maxDeals = options.maxDeals ?? DEFAULT_MAX_DEALS;
+  const log = options.onProgress ?? (() => {});
+
   const rawResults: BraveWebResult[] = [];
-  for (const query of DEAL_QUERIES) {
-    const results = await braveWebSearch(query, RESULTS_PER_QUERY);
+  for (const [i, query] of queries.entries()) {
+    const results = await braveWebSearch(query, resultsPerQuery);
     rawResults.push(...results);
+    log(`[${i + 1}/${queries.length}] "${query}" → ${results.length} resultados`);
   }
 
   const seenUrls = new Set<string>();
@@ -69,25 +112,26 @@ export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
     if (seenUrls.has(urlKey)) continue;
     seenUrls.add(urlKey);
 
-    // originalPrice already found by the regex-based parser is a free win —
-    // still worth double-checking with Gemini so obviously-wrong percentage
-    // guesses don't sneak in, but no need to spend a candidate slot twice.
     const text = [result.title, result.description, ...(result.extra_snippets ?? [])].join(" ");
     candidates.push({ offer: { ...offer, price: offer.price }, text });
   }
 
-  const topCandidates = candidates.slice(0, MAX_CANDIDATES);
+  const topCandidates = candidates.slice(0, maxCandidates);
+  log(`${candidates.length} candidatos únicos de lojas confiáveis (analisando ${topCandidates.length})`);
 
-  let discountResults: Awaited<ReturnType<typeof checkDiscounts>> = [];
-  try {
-    discountResults = await checkDiscounts(
-      topCandidates.map((c, id) => ({ id, title: c.offer.title, price: c.offer.price, text: c.text })),
-    );
-  } catch (err) {
-    console.error("Falha ao verificar descontos com Gemini", err);
+  const byId = new Map<number, { hasDiscount: boolean; originalPrice: number | null }>();
+  for (let i = 0; i < topCandidates.length; i += DISCOUNT_CHECK_BATCH_SIZE) {
+    const batch = topCandidates.slice(i, i + DISCOUNT_CHECK_BATCH_SIZE);
+    try {
+      const results = await checkDiscounts(
+        batch.map((c, j) => ({ id: i + j, title: c.offer.title, price: c.offer.price, text: c.text })),
+      );
+      for (const r of results) byId.set(r.id, r);
+    } catch (err) {
+      console.error("Falha ao verificar descontos com Gemini", err);
+    }
+    log(`Verificado lote de descontos ${i + 1}-${Math.min(i + DISCOUNT_CHECK_BATCH_SIZE, topCandidates.length)}`);
   }
-
-  const byId = new Map(discountResults.map((r) => [r.id, r]));
 
   const deals: FeaturedDeal[] = topCandidates
     .map((candidate, id) => {
@@ -103,7 +147,9 @@ export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
     })
     .filter((d): d is FeaturedDeal => d !== null)
     .sort((a, b) => b.discountPercent - a.discountPercent)
-    .slice(0, MAX_DEALS);
+    .slice(0, maxDeals);
+
+  log(`${deals.length} descontos confirmados`);
 
   let intro = "";
   try {
