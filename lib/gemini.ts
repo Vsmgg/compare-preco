@@ -135,6 +135,32 @@ Escreva, em português brasileiro, uma análise curta e direta explicando por qu
   };
 }
 
+export interface DealSummaryInput {
+  title: string;
+  store: string;
+  price: number;
+  originalPrice: number;
+  discountPercent: number;
+}
+
+export async function summarizeDeals(deals: DealSummaryInput[]): Promise<string> {
+  if (deals.length === 0) return "";
+  const ai = client();
+  const top = deals.slice(0, 12);
+
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `Você é o curador de ofertas do Compare Preço. Recebeu uma lista de produtos REAIS, todos com mais de R$ 2.000 e com desconto ativo encontrado agora na web (não invente novos itens, lojas, preços ou percentuais — use somente os dados abaixo).
+
+Ofertas encontradas hoje:
+${JSON.stringify(top, null, 2)}
+
+Escreva, em português brasileiro, um parágrafo curto (3 a 4 frases) e envolvente apresentando o panorama dos melhores descontos de hoje em produtos de alto valor, citando 1 ou 2 exemplos reais da lista (produto, loja e percentual). Não invente nenhum dado que não esteja na lista.`,
+  });
+
+  return response.text?.trim() ?? "";
+}
+
 export interface ComparableOffer {
   id: string;
   title: string;

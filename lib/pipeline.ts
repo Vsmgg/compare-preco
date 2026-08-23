@@ -10,6 +10,7 @@ import {
   isGenericCategoryTitle,
   isLikelyStorefront,
   looksLikeListingUrl,
+  parseOriginalPrice,
   parsePriceBR,
   parseRating,
   parseReviewCount,
@@ -19,7 +20,7 @@ import {
 import { scoreOffer } from "./scoring";
 import type { RawOffer, ScoredOffer, SearchEvent } from "./types";
 
-function normalizeOffer(result: BraveWebResult): RawOffer | null {
+export function normalizeOffer(result: BraveWebResult): RawOffer | null {
   const domain = extractDomain(result.url);
   if (!domain) return null;
   if (!isLikelyStorefront(result.url, domain)) return null;
@@ -34,7 +35,7 @@ function normalizeOffer(result: BraveWebResult): RawOffer | null {
     return {
       title: cleanTitle(p.name || result.title),
       price,
-      originalPrice: null,
+      originalPrice: parseOriginalPrice([textBlob, result.title].join(" "), price),
       currency: p.offers?.[0]?.priceCurrency || "BRL",
       imageUrl: p.thumbnail?.original || result.thumbnail?.original || null,
       productUrl,
@@ -57,10 +58,11 @@ function normalizeOffer(result: BraveWebResult): RawOffer | null {
   if (isGenericCategoryTitle(result.title) || looksLikeListingUrl(result.url)) return null;
 
   const textBlob = [result.description, ...(result.extra_snippets ?? [])].join(" ");
+  const price = parsePriceBR(textBlob);
   return {
     title: cleanTitle(result.title),
-    price: parsePriceBR(textBlob),
-    originalPrice: null,
+    price,
+    originalPrice: parseOriginalPrice([textBlob, result.title].join(" "), price),
     currency: "BRL",
     imageUrl: result.thumbnail?.original || null,
     productUrl: result.url,
@@ -113,7 +115,7 @@ function matchesRequestedFormFactor(query: string, title: string): boolean {
   return true;
 }
 
-function dedupe(offers: RawOffer[]): RawOffer[] {
+export function dedupe(offers: RawOffer[]): RawOffer[] {
   const seen = new Map<string, RawOffer>();
   for (const offer of offers) {
     const urlKey = offer.productUrl.split("?")[0].replace(/\/$/, "");

@@ -219,6 +219,35 @@ export function parsePriceBR(text: string | null | undefined): number | null {
   return Math.max(...values);
 }
 
+function priceToNumberBR(raw: string): number | null {
+  const value = parseFloat(raw.replace(/\./g, "").replace(",", "."));
+  return Number.isFinite(value) && value >= 10 ? value : null;
+}
+
+// Detects a listed "original" price from common Brazilian discount phrasing
+// ("de R$ 3.999 por R$ 2.499", "37% OFF", "37% de desconto") so we can show
+// a real discount instead of always leaving originalPrice empty.
+export function parseOriginalPrice(text: string | null | undefined, price: number | null): number | null {
+  if (!text || price == null) return null;
+
+  const deParaMatch = text.match(/de\s*R\$\s?(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:,\d{2})?)\s*por\s*R\$/i);
+  if (deParaMatch) {
+    const original = priceToNumberBR(deParaMatch[1]);
+    if (original != null && original > price) return original;
+  }
+
+  const pctMatch = text.match(/(\d{1,2})\s*%\s*(?:off\b|de desconto\b|desconto\b)/i);
+  if (pctMatch) {
+    const pct = parseInt(pctMatch[1], 10);
+    if (pct > 0 && pct < 90) {
+      const original = Math.round((price / (1 - pct / 100)) * 100) / 100;
+      if (Number.isFinite(original) && original > price) return original;
+    }
+  }
+
+  return null;
+}
+
 export function parseRating(text: string | null | undefined): number | null {
   if (!text) return null;
   const match = text.match(/(\d(?:[.,]\d)?)\s*(?:de\s*5|\/\s*5|estrelas)/i);
