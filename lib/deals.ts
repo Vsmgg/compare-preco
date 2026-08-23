@@ -25,6 +25,11 @@ const DEAL_QUERIES = [
   "smartwatch desconto oferta",
   "console playstation 5 desconto oferta",
   "câmera mirrorless desconto oferta",
+  "tablet ipad desconto oferta",
+  "monitor gamer desconto oferta",
+  "fone de ouvido premium desconto oferta",
+  "máquina de lavar desconto oferta",
+  "ar condicionado desconto oferta",
 ];
 
 const MIN_PRICE = 2000;
@@ -33,7 +38,7 @@ const MAX_DEALS = 15;
 export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
   const rawResults: BraveWebResult[] = [];
   for (const query of DEAL_QUERIES) {
-    const results = await braveWebSearch(query, 8);
+    const results = await braveWebSearch(query, 12);
     rawResults.push(...results);
   }
 

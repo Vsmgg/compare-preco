@@ -226,6 +226,7 @@ function priceToNumberBR(raw: string): number | null {
 
 const PRICE_NUMBER = String.raw`(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:,\d{2})?)`;
 const DE_POR_PATTERN = new RegExp(`de:?\\s*R\\$\\s?${PRICE_NUMBER}\\s*por:?\\s*R\\$\\s?${PRICE_NUMBER}`, "i");
+const DE_ONLY_PATTERN = new RegExp(`\\bde:?\\s*R\\$\\s?${PRICE_NUMBER}\\b`, "i");
 const PERCENT_OFF_PATTERN = /(\d{1,2})\s*%\s*(?:off\b|de desconto\b|desconto\b)/i;
 
 function originalPriceFromPercent(text: string, price: number): number | null {
@@ -249,6 +250,12 @@ export function parseOriginalPrice(text: string | null | undefined, price: numbe
     if (original != null && original > price) return original;
   }
 
+  const deOnlyMatch = text.match(DE_ONLY_PATTERN);
+  if (deOnlyMatch) {
+    const original = priceToNumberBR(deOnlyMatch[1]);
+    if (original != null && original > price) return original;
+  }
+
   return originalPriceFromPercent(text, price);
 }
 
@@ -263,6 +270,19 @@ export function parsePriceWithDiscount(text: string | null | undefined): { price
   if (deParaMatch) {
     const original = priceToNumberBR(deParaMatch[1]);
     const sale = priceToNumberBR(deParaMatch[2]);
+    if (original != null && sale != null && original > sale) {
+      return { price: sale, originalPrice: original };
+    }
+  }
+
+  // "De R$ 3.999,00" mentioned on its own (sale price stated elsewhere in the
+  // same snippet) — exclude that number from the sale-price candidates so it
+  // doesn't get picked as "the price" by the max-value fallback below.
+  const deOnlyMatch = text.match(DE_ONLY_PATTERN);
+  if (deOnlyMatch && deOnlyMatch.index != null) {
+    const original = priceToNumberBR(deOnlyMatch[1]);
+    const remaining = text.slice(0, deOnlyMatch.index) + text.slice(deOnlyMatch.index + deOnlyMatch[0].length);
+    const sale = parsePriceBR(remaining);
     if (original != null && sale != null && original > sale) {
       return { price: sale, originalPrice: original };
     }
