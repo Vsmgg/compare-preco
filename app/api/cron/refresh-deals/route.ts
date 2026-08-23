@@ -7,7 +7,7 @@ export const maxDuration = 60;
 
 // Sized to comfortably finish well inside the 60s function limit even with
 // throttled Brave calls and a Gemini verification pass.
-const BATCH_SIZE = 6;
+const BATCH_SIZE = 4;
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
