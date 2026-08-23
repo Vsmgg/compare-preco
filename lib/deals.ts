@@ -1,5 +1,6 @@
 import { braveWebSearch, type BraveWebResult } from "./brave";
 import { checkDiscounts, summarizeDeals } from "./gemini";
+import { KNOWN_TRUSTED_STORES } from "./parse";
 import { normalizeOffer } from "./pipeline";
 import type { RawOffer } from "./types";
 
@@ -55,6 +56,10 @@ export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
   for (const result of rawResults) {
     const offer = normalizeOffer(result);
     if (!offer || offer.price == null || offer.price < MIN_PRICE) continue;
+    // A "was/now" price claim is only as trustworthy as the site publishing
+    // it — unknown storefronts sometimes inflate the "original" price to
+    // fake a bigger discount, so only well-known retailers are eligible here.
+    if (!KNOWN_TRUSTED_STORES.has(offer.store)) continue;
 
     const urlKey = offer.productUrl.split("?")[0].replace(/\/$/, "");
     if (seenUrls.has(urlKey)) continue;
