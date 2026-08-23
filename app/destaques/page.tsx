@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 };
 
 export const runtime = "nodejs";
+// The DB read is cheap — always render fresh so newly verified deals (added
+// by the cron job at any time) show up immediately instead of waiting for
+// the next full rebuild of the app.
+export const dynamic = "force-dynamic";
 
 export default async function DestaquesPage() {
   let deals: FeaturedDeal[] = [];
