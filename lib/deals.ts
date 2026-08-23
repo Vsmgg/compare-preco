@@ -16,23 +16,23 @@ export interface FeaturedDealsResult {
   intro: string;
 }
 
-// Named models (instead of generic category terms) surface far more
-// structured "product" results from Brave — which is where real, reliable
-// price and discount data actually comes from — while still spanning a
-// spread of high-ticket categories that regularly sell above R$ 2.000.
+// Scoping each query to a known, trusted retailer's domain (the same
+// site:-operator technique the main search pipeline uses) makes it far more
+// likely results actually come from a real store with genuine listed prices,
+// instead of hoping an open web search happens to surface one.
 const DEAL_QUERIES = [
-  "iPhone 15 Pro Max 256GB oferta",
-  "Samsung Galaxy S24 Ultra oferta",
-  "Smart TV Samsung 65 polegadas 4K oferta",
-  "Notebook Dell Inspiron oferta",
-  "PlayStation 5 Slim oferta",
-  "Geladeira Brastemp Frost Free oferta",
-  "Apple Watch Series 9 oferta",
-  "iPad Pro oferta",
-  "Sony WH-1000XM5 oferta",
-  "Máquina de lavar Brastemp 12kg oferta",
-  "Notebook gamer Acer Nitro oferta",
-  "Câmera Canon EOS oferta",
+  "smart tv 65 polegadas oferta site:amazon.com.br",
+  "iphone oferta site:amazon.com.br",
+  "notebook gamer oferta site:kabum.com.br",
+  "geladeira frost free oferta site:magazineluiza.com.br",
+  "smartwatch oferta site:amazon.com.br",
+  "playstation 5 oferta site:magazineluiza.com.br",
+  "câmera mirrorless oferta site:amazon.com.br",
+  "ipad oferta site:fastshop.com.br",
+  "monitor gamer oferta site:kabum.com.br",
+  "fone de ouvido premium oferta site:amazon.com.br",
+  "máquina de lavar oferta site:casasbahia.com.br",
+  "ar condicionado oferta site:magazineluiza.com.br",
 ];
 
 const MIN_PRICE = 2000;
