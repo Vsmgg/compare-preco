@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-export const revalidate = 3600;
+export const revalidate = 43200; // 12 horas
 
 export default async function DestaquesPage() {
   let deals: Awaited<ReturnType<typeof getFeaturedDeals>>["deals"] = [];
@@ -37,10 +37,11 @@ export default async function DestaquesPage() {
             <span className="text-xs font-semibold uppercase tracking-wide">Destaques de hoje</span>
           </div>
           <h1 className="mt-2 font-display text-2xl font-bold text-text sm:text-3xl">
-            Maiores descontos acima de <span className="text-gradient-red">R$ 2.000</span>
+            Promoções em <span className="text-gradient-red">destaque</span> no Brasil
           </h1>
           <p className="mt-1 text-sm text-text-muted">
-            A IA vasculha a web em busca de produtos de alto valor com desconto real ativo agora.
+            A IA vasculha a web em busca de descontos reais e confirmados, de qualquer valor. Atualiza a cada 12
+            horas.
           </p>
 
           {intro && (
@@ -59,7 +60,8 @@ export default async function DestaquesPage() {
 
           {!failed && deals.length === 0 && (
             <p className="mt-10 rounded-2xl border border-border bg-card p-6 text-center text-sm text-text-muted">
-              Não encontramos descontos relevantes acima de R$ 2.000 no momento. Volte em breve.
+              Não encontramos nenhum desconto que pudéssemos confirmar no momento. Preferimos não mostrar nada a
+              mostrar um preço ou promoção não verificados. Volte em breve.
             </p>
           )}
 

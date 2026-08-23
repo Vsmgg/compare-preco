@@ -19,25 +19,26 @@ export interface FeaturedDealsResult {
 // Scoping each query to a known, trusted retailer's domain (the same
 // site:-operator technique the main search pipeline uses) makes it far more
 // likely results actually come from a real store with genuine listed prices,
-// instead of hoping an open web search happens to surface one.
+// instead of hoping an open web search happens to surface one. Spans a mix
+// of ticket sizes since there's no minimum price anymore — this is meant to
+// surface real Brazilian promotions in general, not just high-end items.
 const DEAL_QUERIES = [
-  "smart tv 65 polegadas oferta site:amazon.com.br",
+  "smart tv oferta site:amazon.com.br",
   "iphone oferta site:amazon.com.br",
-  "notebook gamer oferta site:kabum.com.br",
-  "geladeira frost free oferta site:magazineluiza.com.br",
+  "notebook oferta site:kabum.com.br",
+  "tênis oferta site:netshoes.com.br",
+  "perfume importado oferta site:amazon.com.br",
+  "fone de ouvido oferta site:amazon.com.br",
   "smartwatch oferta site:amazon.com.br",
   "playstation 5 oferta site:amazon.com.br",
-  "câmera mirrorless oferta site:amazon.com.br",
-  "ipad oferta site:amazon.com.br",
-  "fone de ouvido premium oferta site:amazon.com.br",
-  "ar condicionado oferta site:magazineluiza.com.br",
+  "geladeira oferta site:magazineluiza.com.br",
+  "brinquedo oferta site:amazon.com.br",
 ];
 
 // Every query costs ~1.1s of throttling plus network time, and the whole
 // page has a hard 60s ceiling (maxDuration below) — keep this comfortably
 // under budget so a cold start or a slow Gemini call can never push it over
 // and turn the page into a 504.
-const MIN_PRICE = 2000;
 const RESULTS_PER_QUERY = 15;
 const MAX_CANDIDATES = 30;
 const MAX_DEALS = 15;
@@ -58,7 +59,7 @@ export async function getFeaturedDeals(): Promise<FeaturedDealsResult> {
   const candidates: Candidate[] = [];
   for (const result of rawResults) {
     const offer = normalizeOffer(result);
-    if (!offer || offer.price == null || offer.price < MIN_PRICE) continue;
+    if (!offer || offer.price == null) continue;
     // A "was/now" price claim is only as trustworthy as the site publishing
     // it — unknown storefronts sometimes inflate the "original" price to
     // fake a bigger discount, so only well-known retailers are eligible here.

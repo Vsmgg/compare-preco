@@ -227,20 +227,13 @@ function priceToNumberBR(raw: string): number | null {
 const PRICE_NUMBER = String.raw`(\d{1,3}(?:\.\d{3})*(?:,\d{2})?|\d+(?:,\d{2})?)`;
 const DE_POR_PATTERN = new RegExp(`de:?\\s*R\\$\\s?${PRICE_NUMBER}\\s*por:?\\s*R\\$\\s?${PRICE_NUMBER}`, "i");
 const DE_ONLY_PATTERN = new RegExp(`\\bde:?\\s*R\\$\\s?${PRICE_NUMBER}\\b`, "i");
-const PERCENT_OFF_PATTERN = /(\d{1,2})\s*%\s*(?:off\b|de desconto\b|desconto\b)/i;
-
-function originalPriceFromPercent(text: string, price: number): number | null {
-  const pctMatch = text.match(PERCENT_OFF_PATTERN);
-  if (!pctMatch) return null;
-  const pct = parseInt(pctMatch[1], 10);
-  if (pct <= 0 || pct >= 90) return null;
-  const original = Math.round((price / (1 - pct / 100)) * 100) / 100;
-  return Number.isFinite(original) && original > price ? original : null;
-}
-
 // Detects a listed "original" price from common Brazilian discount phrasing
-// ("de R$ 3.999 por R$ 2.499", "37% OFF") for a price that's already known
-// to be reliable (e.g. Brave's structured product price).
+// ("de R$ 3.999 por R$ 2.499") for a price that's already known to be
+// reliable (e.g. Brave's structured product price).
+//
+// Deliberately does NOT derive a number from a bare percentage ("37% OFF"):
+// that would be a computed/inferred value, not a price actually stated in
+// the source — and this app never presents inferred data as confirmed.
 export function parseOriginalPrice(text: string | null | undefined, price: number | null): number | null {
   if (!text || price == null) return null;
 
@@ -256,7 +249,7 @@ export function parseOriginalPrice(text: string | null | undefined, price: numbe
     if (original != null && original > price) return original;
   }
 
-  return originalPriceFromPercent(text, price);
+  return null;
 }
 
 // Same idea, but for free-text results where we don't have a trusted price
@@ -289,7 +282,7 @@ export function parsePriceWithDiscount(text: string | null | undefined): { price
   }
 
   const price = parsePriceBR(text);
-  return { price, originalPrice: price != null ? originalPriceFromPercent(text, price) : null };
+  return { price, originalPrice: null };
 }
 
 export function parseRating(text: string | null | undefined): number | null {

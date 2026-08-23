@@ -157,13 +157,15 @@ export async function checkDiscounts(candidates: DiscountCandidate[]): Promise<D
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `Você verifica descontos reais para o Compare Preço. Para cada item da lista, com base SOMENTE no texto fornecido (title/text, que vem de um resultado de busca real), diga se há evidência clara de que o preço atual é promocional (preço original/riscado mencionado, "de X por Y", percentual de desconto, "oferta", "liquidação" com valor anterior citado, etc.).
+    contents: `Você verifica descontos reais para o Compare Preço. Regra absoluta: NUNCA invente, estime, complete ou calcule um dado que não esteja literalmente no texto. É melhor marcar hasDiscount=false do que arriscar um dado não confirmado.
 
-Regras importantes:
-- Só marque hasDiscount=true se o texto realmente mencionar ou permitir calcular um preço ORIGINAL maior que o campo "price" de cada item.
-- Se mencionar apenas "oferta" ou "promoção" sem nenhum valor original, hasDiscount=false.
-- Nunca invente um originalPrice que não seja dedutível do texto. Se não conseguir calcular um número, use null mesmo com hasDiscount=true.
-- originalPrice deve ser sempre maior que o price do item.
+Para cada item da lista, com base SOMENTE no texto fornecido (title/text, que vem de um resultado de busca real):
+
+- Só marque hasDiscount=true se o texto citar EXPLICITAMENTE um valor em reais do preço ORIGINAL/antigo (ex: "de R$ 3.999 por R$ 2.499", "R$ 2.499 (antes R$ 3.999)", preço riscado citado como texto). originalPrice deve ser exatamente esse número, nunca um valor calculado.
+- Se o texto mencionar apenas um percentual ("37% OFF", "37% de desconto") SEM citar o valor em reais do preço original, marque hasDiscount=false e originalPrice=null — NUNCA calcule o preço original a partir do percentual, isso seria um dado inferido, não confirmado.
+- Se mencionar apenas "oferta", "promoção" ou "liquidação" sem nenhum valor original em reais, hasDiscount=false.
+- Se houver qualquer dúvida sobre se o preço original citado é do mesmo produto/variante do preço atual, hasDiscount=false.
+- originalPrice deve ser sempre maior que o campo "price" do item.
 
 Itens:
 ${JSON.stringify(candidates, null, 2)}`,
@@ -210,12 +212,12 @@ export async function summarizeDeals(deals: DealSummaryInput[]): Promise<string>
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `Você é o curador de ofertas do Compare Preço. Recebeu uma lista de produtos REAIS, todos com mais de R$ 2.000 e com desconto ativo encontrado agora na web (não invente novos itens, lojas, preços ou percentuais — use somente os dados abaixo).
+    contents: `Você é o curador de ofertas do Compare Preço. Recebeu uma lista de produtos REAIS com desconto ativo e confirmado, encontrados agora na web em lojas conhecidas (não invente novos itens, lojas, preços ou percentuais — use somente os dados abaixo).
 
 Ofertas encontradas hoje:
 ${JSON.stringify(top, null, 2)}
 
-Escreva, em português brasileiro, um parágrafo curto (3 a 4 frases) e envolvente apresentando o panorama dos melhores descontos de hoje em produtos de alto valor, citando 1 ou 2 exemplos reais da lista (produto, loja e percentual). Não invente nenhum dado que não esteja na lista.`,
+Escreva, em português brasileiro, um parágrafo curto (3 a 4 frases) e envolvente apresentando o panorama dos melhores descontos de hoje no Brasil, citando 1 ou 2 exemplos reais da lista (produto, loja e percentual). Não invente nenhum dado que não esteja na lista.`,
   });
 
   return response.text?.trim() ?? "";
