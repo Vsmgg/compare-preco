@@ -6,10 +6,10 @@ export async function saveFeaturedDeals(deals: FeaturedDeal[]): Promise<void> {
     await sql`
       INSERT INTO featured_deals (
         title, store, price, original_price, discount_percent, currency,
-        image_url, product_url, rating, review_count, availability, condition, seller
+        image_url, product_url, rating, review_count, availability, condition, seller, category
       ) VALUES (
         ${deal.title}, ${deal.store}, ${deal.price}, ${deal.originalPrice}, ${deal.discountPercent}, ${deal.currency},
-        ${deal.imageUrl}, ${deal.productUrl}, ${deal.rating}, ${deal.reviewCount}, ${deal.availability}, ${deal.condition}, ${deal.seller}
+        ${deal.imageUrl}, ${deal.productUrl}, ${deal.rating}, ${deal.reviewCount}, ${deal.availability}, ${deal.condition}, ${deal.seller}, ${deal.category}
       )
       ON CONFLICT (product_url) DO UPDATE SET
         title = EXCLUDED.title,
@@ -22,6 +22,7 @@ export async function saveFeaturedDeals(deals: FeaturedDeal[]): Promise<void> {
         review_count = EXCLUDED.review_count,
         availability = EXCLUDED.availability,
         condition = EXCLUDED.condition,
+        category = EXCLUDED.category,
         verified_at = now()
     `;
   }
@@ -42,6 +43,7 @@ interface FeaturedDealRow {
   availability: boolean | null;
   condition: string | null;
   seller: string | null;
+  category: string;
   verified_at: string;
 }
 
@@ -49,7 +51,10 @@ interface FeaturedDealRow {
 // this old is stale enough that we'd rather show nothing than something
 // that might no longer be accurate.
 const MAX_AGE_HOURS = 72;
-const LIMIT = 24;
+// Generous cap since results are grouped by category on the page — the
+// per-category limit that actually shapes what's shown is enforced upstream,
+// when deals are discovered and saved.
+const LIMIT = 100;
 
 export async function saveDealsIntro(intro: string): Promise<void> {
   await sql`
@@ -91,6 +96,7 @@ export async function loadFeaturedDeals(): Promise<FeaturedDeal[]> {
     seller: r.seller,
     source: "brave_search",
     priceConfident: true,
+    category: r.category,
     verifiedAt: r.verified_at,
   }));
 }

@@ -9,6 +9,7 @@ export interface FeaturedDeal extends RawOffer {
   price: number;
   originalPrice: number;
   discountPercent: number;
+  category: string;
   /** ISO timestamp of when this discount was last confirmed against the source. Null for a deal not yet persisted. */
   verifiedAt: string | null;
 }
@@ -18,110 +19,151 @@ export interface FeaturedDealsResult {
   intro: string;
 }
 
-// Scoping each query to a known, trusted retailer's domain (the same
-// site:-operator technique the main search pipeline uses) makes it far more
-// likely results actually come from a real store with genuine listed prices,
-// instead of hoping an open web search happens to surface one. Spans a mix
-// of ticket sizes and categories since there's no minimum price — this is
-// meant to surface real Brazilian promotions in general, not just
-// high-end items.
-export const DEFAULT_DEAL_QUERIES = [
-  "smart tv oferta site:amazon.com.br",
-  "smart tv oferta site:magazineluiza.com.br",
-  "smart tv oferta site:casasbahia.com.br",
-  "iphone oferta site:amazon.com.br",
-  "iphone oferta site:magazineluiza.com.br",
-  "smartphone oferta site:amazon.com.br",
-  "smartphone oferta site:mercadolivre.com.br",
-  "notebook oferta site:kabum.com.br",
-  "notebook oferta site:amazon.com.br",
-  "notebook gamer oferta site:pichau.com.br",
-  "placa de video oferta site:kabum.com.br",
-  "placa de video oferta site:terabyteshop.com.br",
-  "processador oferta site:pichau.com.br",
-  "monitor gamer oferta site:kabum.com.br",
-  "tênis oferta site:netshoes.com.br",
-  "tênis oferta site:centauro.com.br",
-  "roupa oferta site:netshoes.com.br",
-  "perfume importado oferta site:amazon.com.br",
-  "perfume importado oferta site:magazineluiza.com.br",
-  "fone de ouvido oferta site:amazon.com.br",
-  "fone de ouvido oferta site:kabum.com.br",
-  "smartwatch oferta site:amazon.com.br",
-  "câmera oferta site:amazon.com.br",
-  "playstation 5 oferta site:amazon.com.br",
-  "playstation 5 oferta site:magazineluiza.com.br",
-  "xbox oferta site:amazon.com.br",
-  "geladeira oferta site:magazineluiza.com.br",
-  "geladeira oferta site:casasbahia.com.br",
-  "máquina de lavar oferta site:magazineluiza.com.br",
-  "máquina de lavar oferta site:casasbahia.com.br",
-  "ar condicionado oferta site:magazineluiza.com.br",
-  "micro-ondas oferta site:casasbahia.com.br",
-  "aspirador de pó oferta site:amazon.com.br",
-  "air fryer oferta site:amazon.com.br",
-  "brinquedo oferta site:amazon.com.br",
-  "brinquedo oferta site:mercadolivre.com.br",
-  "tablet oferta site:amazon.com.br",
-  "tablet oferta site:magazineluiza.com.br",
-  "bicicleta oferta site:mercadolivre.com.br",
-  "mochila oferta site:americanas.com.br",
-  // Hardware/electronics retailers tend to publish an explicit "de/por"
-  // price pair more consistently than general marketplaces — this group
-  // leans into that.
-  "notebook site:amazon.com.br liquidação",
-  "smart tv site:kabum.com.br liquidação",
-  "placa de vídeo site:pichau.com.br oferta",
-  "monitor site:terabyteshop.com.br oferta",
-  "processador site:kabum.com.br oferta",
-  "memória ram site:kabum.com.br oferta",
-  "ssd site:kabum.com.br oferta",
-  "fonte gamer site:pichau.com.br oferta",
-  "gabinete gamer site:pichau.com.br oferta",
-  "cadeira gamer site:kabum.com.br oferta",
-  "headset gamer site:kabum.com.br oferta",
-  "teclado mecânico site:kabum.com.br oferta",
-  "mouse gamer site:kabum.com.br oferta",
-  "console xbox series site:kabum.com.br oferta",
-  "smartphone site:kabum.com.br oferta",
-  "notebook site:pichau.com.br oferta",
+export interface DealQuery {
+  query: string;
+  category: string;
+}
+
+// Categories a shopper actually thinks in terms of. Scoping each query to a
+// known, trusted retailer's domain (the same site:-operator technique the
+// main search pipeline uses) makes it far more likely results come from a
+// real store with genuine listed prices, instead of hoping an open web
+// search happens to surface one.
+const DEAL_QUERY_GROUPS: { category: string; queries: string[] }[] = [
+  {
+    category: "Eletrônicos",
+    queries: [
+      "smart tv oferta site:amazon.com.br",
+      "smart tv oferta site:magazineluiza.com.br",
+      "smart tv oferta site:casasbahia.com.br",
+      "smart tv site:kabum.com.br liquidação",
+      "iphone oferta site:amazon.com.br",
+      "iphone oferta site:magazineluiza.com.br",
+      "smartphone oferta site:amazon.com.br",
+      "smartphone oferta site:mercadolivre.com.br",
+      "smartphone site:kabum.com.br oferta",
+      "smartwatch oferta site:amazon.com.br",
+      "câmera oferta site:amazon.com.br",
+      "fone de ouvido oferta site:amazon.com.br",
+      "fone de ouvido oferta site:kabum.com.br",
+      "tablet oferta site:amazon.com.br",
+      "tablet oferta site:magazineluiza.com.br",
+    ],
+  },
+  {
+    category: "Informática",
+    queries: [
+      "notebook oferta site:kabum.com.br",
+      "notebook oferta site:amazon.com.br",
+      "notebook gamer oferta site:pichau.com.br",
+      "notebook site:amazon.com.br liquidação",
+      "notebook site:pichau.com.br oferta",
+      "placa de video oferta site:kabum.com.br",
+      "placa de video oferta site:terabyteshop.com.br",
+      "placa de vídeo site:pichau.com.br oferta",
+      "processador oferta site:pichau.com.br",
+      "processador site:kabum.com.br oferta",
+      "monitor gamer oferta site:kabum.com.br",
+      "monitor site:terabyteshop.com.br oferta",
+      "memória ram site:kabum.com.br oferta",
+      "ssd site:kabum.com.br oferta",
+      "fonte gamer site:pichau.com.br oferta",
+      "gabinete gamer site:pichau.com.br oferta",
+    ],
+  },
+  {
+    category: "Games",
+    queries: [
+      "playstation 5 oferta site:amazon.com.br",
+      "playstation 5 oferta site:magazineluiza.com.br",
+      "xbox oferta site:amazon.com.br",
+      "console xbox series site:kabum.com.br oferta",
+      "cadeira gamer site:kabum.com.br oferta",
+      "headset gamer site:kabum.com.br oferta",
+      "teclado mecânico site:kabum.com.br oferta",
+      "mouse gamer site:kabum.com.br oferta",
+    ],
+  },
+  {
+    category: "Moda",
+    queries: [
+      "tênis oferta site:netshoes.com.br",
+      "tênis oferta site:centauro.com.br",
+      "roupa oferta site:netshoes.com.br",
+      "mochila oferta site:americanas.com.br",
+    ],
+  },
+  {
+    category: "Beleza",
+    queries: ["perfume importado oferta site:amazon.com.br", "perfume importado oferta site:magazineluiza.com.br"],
+  },
+  {
+    category: "Casa e Eletrodomésticos",
+    queries: [
+      "geladeira oferta site:magazineluiza.com.br",
+      "geladeira oferta site:casasbahia.com.br",
+      "máquina de lavar oferta site:magazineluiza.com.br",
+      "máquina de lavar oferta site:casasbahia.com.br",
+      "ar condicionado oferta site:magazineluiza.com.br",
+      "micro-ondas oferta site:casasbahia.com.br",
+      "aspirador de pó oferta site:amazon.com.br",
+      "air fryer oferta site:amazon.com.br",
+    ],
+  },
+  {
+    category: "Brinquedos",
+    queries: ["brinquedo oferta site:amazon.com.br", "brinquedo oferta site:mercadolivre.com.br"],
+  },
+  {
+    category: "Esportes e Mobilidade",
+    queries: ["bicicleta oferta site:mercadolivre.com.br"],
+  },
 ];
+
+export const DEFAULT_DEAL_QUERIES: DealQuery[] = DEAL_QUERY_GROUPS.flatMap(({ category, queries }) =>
+  queries.map((query) => ({ query, category })),
+);
+
+// Display order for category sections — matches how the queries above are
+// grouped, so the page doesn't have to guess a sensible order.
+export const DEAL_CATEGORY_ORDER: string[] = DEAL_QUERY_GROUPS.map((g) => g.category);
 
 const DEFAULT_RESULTS_PER_QUERY = 15;
 const DEFAULT_MAX_CANDIDATES = 150;
-const DEFAULT_MAX_DEALS = 30;
+const DEFAULT_MAX_DEALS_PER_CATEGORY = 8;
 const DISCOUNT_CHECK_BATCH_SIZE = 25;
 
 export interface DiscoverDealsOptions {
-  queries?: string[];
+  queries?: DealQuery[];
   resultsPerQuery?: number;
   maxCandidates?: number;
-  maxDeals?: number;
+  maxDealsPerCategory?: number;
   onProgress?: (message: string) => void;
 }
 
 interface Candidate {
   offer: RawOffer & { price: number };
   text: string;
+  category: string;
 }
 
 export async function getFeaturedDeals(options: DiscoverDealsOptions = {}): Promise<FeaturedDealsResult> {
   const queries = options.queries ?? DEFAULT_DEAL_QUERIES;
   const resultsPerQuery = options.resultsPerQuery ?? DEFAULT_RESULTS_PER_QUERY;
   const maxCandidates = options.maxCandidates ?? DEFAULT_MAX_CANDIDATES;
-  const maxDeals = options.maxDeals ?? DEFAULT_MAX_DEALS;
+  const maxDealsPerCategory = options.maxDealsPerCategory ?? DEFAULT_MAX_DEALS_PER_CATEGORY;
   const log = options.onProgress ?? (() => {});
 
-  const rawResults: BraveWebResult[] = [];
-  for (const [i, query] of queries.entries()) {
+  const rawResults: { result: BraveWebResult; category: string }[] = [];
+  for (const [i, { query, category }] of queries.entries()) {
     const results = await braveWebSearch(query, resultsPerQuery);
-    rawResults.push(...results);
-    log(`[${i + 1}/${queries.length}] "${query}" → ${results.length} resultados`);
+    for (const result of results) rawResults.push({ result, category });
+    log(`[${i + 1}/${queries.length}] "${query}" (${category}) → ${results.length} resultados`);
   }
 
   const seenUrls = new Set<string>();
   const candidates: Candidate[] = [];
-  for (const result of rawResults) {
+  for (const { result, category } of rawResults) {
     const offer = normalizeOffer(result);
     if (!offer || offer.price == null) continue;
     // A "was/now" price claim is only as trustworthy as the site publishing
@@ -134,7 +176,7 @@ export async function getFeaturedDeals(options: DiscoverDealsOptions = {}): Prom
     seenUrls.add(urlKey);
 
     const text = [result.title, result.description, ...(result.extra_snippets ?? [])].join(" ");
-    candidates.push({ offer: { ...offer, price: offer.price }, text });
+    candidates.push({ offer: { ...offer, price: offer.price }, text, category });
   }
 
   const topCandidates = candidates.slice(0, maxCandidates);
@@ -154,24 +196,38 @@ export async function getFeaturedDeals(options: DiscoverDealsOptions = {}): Prom
     log(`Verificado lote de descontos ${i + 1}-${Math.min(i + DISCOUNT_CHECK_BATCH_SIZE, topCandidates.length)}`);
   }
 
-  const deals: FeaturedDeal[] = topCandidates
+  const verified = topCandidates
     .map((candidate, id) => {
       const verdict = byId.get(id);
       const originalPrice = verdict?.hasDiscount ? (verdict.originalPrice ?? candidate.offer.originalPrice) : null;
       if (originalPrice == null || originalPrice <= candidate.offer.price) return null;
-      return {
+      const deal: FeaturedDeal = {
         ...candidate.offer,
         id: crypto.randomUUID(),
         originalPrice,
         discountPercent: Math.round((1 - candidate.offer.price / originalPrice) * 100),
-        verifiedAt: new Date().toISOString() as string | null,
+        category: candidate.category,
+        verifiedAt: new Date().toISOString(),
       };
+      return deal;
     })
-    .filter((d): d is FeaturedDeal => d !== null)
-    .sort((a, b) => b.discountPercent - a.discountPercent)
-    .slice(0, maxDeals);
+    .filter((d): d is FeaturedDeal => d !== null);
 
-  log(`${deals.length} descontos confirmados`);
+  // Cap per category so one category with lots of hits (e.g. Informática)
+  // doesn't crowd out everything else — this is meant to read as a
+  // catalogue of sections, not one long list.
+  const byCategory = new Map<string, FeaturedDeal[]>();
+  for (const deal of verified) {
+    const list = byCategory.get(deal.category) ?? [];
+    list.push(deal);
+    byCategory.set(deal.category, list);
+  }
+
+  const deals: FeaturedDeal[] = [...byCategory.values()].flatMap((list) =>
+    list.sort((a, b) => b.discountPercent - a.discountPercent).slice(0, maxDealsPerCategory),
+  );
+
+  log(`${deals.length} descontos confirmados em ${byCategory.size} categorias`);
 
   let intro = "";
   try {

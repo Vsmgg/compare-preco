@@ -4,7 +4,44 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DealCard } from "@/components/DealCard";
 import { loadDealsIntro, loadFeaturedDeals } from "@/lib/dealsStore";
-import type { FeaturedDeal } from "@/lib/deals";
+import { DEAL_CATEGORY_ORDER, type FeaturedDeal } from "@/lib/deals";
+
+const ACCENTS: Record<string, string> = {
+  á: "a", à: "a", â: "a", ã: "a", ä: "a",
+  é: "e", è: "e", ê: "e", ë: "e",
+  í: "i", ì: "i", î: "i", ï: "i",
+  ó: "o", ò: "o", ô: "o", õ: "o", ö: "o",
+  ú: "u", ù: "u", û: "u", ü: "u",
+  ç: "c",
+};
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[áàâãäéèêëíìîïóòôõöúùûüç]/g, (ch) => ACCENTS[ch] ?? ch)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function groupByCategory(deals: FeaturedDeal[]): { category: string; deals: FeaturedDeal[] }[] {
+  const map = new Map<string, FeaturedDeal[]>();
+  for (const deal of deals) {
+    const list = map.get(deal.category) ?? [];
+    list.push(deal);
+    map.set(deal.category, list);
+  }
+  for (const list of map.values()) {
+    list.sort((a, b) => b.discountPercent - a.discountPercent);
+  }
+  const known = DEAL_CATEGORY_ORDER.filter((c) => map.has(c)).map((category) => ({
+    category,
+    deals: map.get(category)!,
+  }));
+  const rest = [...map.keys()]
+    .filter((c) => !DEAL_CATEGORY_ORDER.includes(c))
+    .map((category) => ({ category, deals: map.get(category)! }));
+  return [...known, ...rest];
+}
 
 export const metadata: Metadata = {
   title: "Destaques com desconto",
@@ -27,6 +64,8 @@ export default async function DestaquesPage() {
     console.error("Falha ao carregar destaques", err);
     failed = true;
   }
+
+  const categorized = groupByCategory(deals);
 
   return (
     <>
@@ -63,11 +102,39 @@ export default async function DestaquesPage() {
           {!failed && deals.length > 0 && (
             <>
               <p className="mt-8 text-xs font-medium uppercase tracking-wide text-text-muted">
-                {deals.length} {deals.length === 1 ? "oferta verificada" : "ofertas verificadas"}
+                {deals.length} {deals.length === 1 ? "oferta verificada" : "ofertas verificadas"} em{" "}
+                {categorized.length} {categorized.length === 1 ? "categoria" : "categorias"}
               </p>
-              <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {deals.map((deal) => (
-                  <DealCard key={deal.id} deal={deal} />
+
+              {categorized.length > 1 && (
+                <nav className="mt-4 flex flex-wrap gap-2">
+                  {categorized.map(({ category }) => (
+                    <a
+                      key={category}
+                      href={`#${slugify(category)}`}
+                      className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-red/40 hover:text-text"
+                    >
+                      {category}
+                    </a>
+                  ))}
+                </nav>
+              )}
+
+              <div className="mt-6 space-y-10">
+                {categorized.map(({ category, deals: categoryDeals }) => (
+                  <section key={category} id={slugify(category)} className="scroll-mt-24">
+                    <div className="mb-4 flex items-baseline justify-between gap-3 border-b border-border pb-2">
+                      <h2 className="font-display text-lg font-semibold text-text">{category}</h2>
+                      <span className="shrink-0 text-xs text-text-muted">
+                        {categoryDeals.length} {categoryDeals.length === 1 ? "oferta" : "ofertas"}
+                      </span>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {categoryDeals.map((deal) => (
+                        <DealCard key={deal.id} deal={deal} />
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             </>

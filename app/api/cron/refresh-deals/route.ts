@@ -40,7 +40,13 @@ export async function GET(req: Request) {
       totalQueries: DEFAULT_DEAL_QUERIES.length,
       processedQueries: batch,
       dealsFound: deals.length,
-      deals: deals.map((d) => ({ title: d.title, store: d.store, price: d.price, discountPercent: d.discountPercent })),
+      deals: deals.map((d) => ({
+        title: d.title,
+        store: d.store,
+        category: d.category,
+        price: d.price,
+        discountPercent: d.discountPercent,
+      })),
     });
   } catch (err) {
     console.error("Falha ao atualizar destaques", err);
