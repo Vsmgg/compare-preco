@@ -26,6 +26,17 @@ const STORE_NAMES: Record<string, string> = {
   "ninetech.com.br": "Nine Tech",
   "terabyteshop.com.br": "Terabyte Shop",
   "pichau.com.br": "Pichau",
+  "sephora.com.br": "Sephora",
+  "epocacosmeticos.com.br": "Época Cosméticos",
+  "boticario.com.br": "O Boticário",
+  "lojasrenner.com.br": "Renner",
+  "riachuelo.com.br": "Riachuelo",
+  "dafiti.com.br": "Dafiti",
+  "leroymerlin.com.br": "Leroy Merlin",
+  "tokstok.com.br": "Tok&Stok",
+  "rihappy.com.br": "Ri Happy",
+  "pbkids.com.br": "PBKids",
+  "decathlon.com.br": "Decathlon",
 };
 
 export const KNOWN_TRUSTED_STORES = new Set([
@@ -48,6 +59,17 @@ export const KNOWN_TRUSTED_STORES = new Set([
   "WebMotors",
   "Terabyte Shop",
   "Pichau",
+  "Sephora",
+  "Época Cosméticos",
+  "O Boticário",
+  "Renner",
+  "Riachuelo",
+  "Dafiti",
+  "Leroy Merlin",
+  "Tok&Stok",
+  "Ri Happy",
+  "PBKids",
+  "Decathlon",
 ]);
 
 export function extractDomain(url: string): string {
