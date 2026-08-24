@@ -45,6 +45,7 @@ function groupByCategory(deals: FeaturedDeal[]): { category: string; deals: Feat
 
 export const metadata: Metadata = {
   title: "Destaques com desconto",
+  description: "Promoções reais e verificadas em lojas confiáveis do Brasil, organizadas por categoria.",
 };
 
 export const runtime = "nodejs";

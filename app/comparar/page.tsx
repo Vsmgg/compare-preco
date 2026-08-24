@@ -4,6 +4,7 @@ import { CompareView } from "@/components/CompareView";
 
 export const metadata: Metadata = {
   title: "Comparar ofertas",
+  description: "Compare lado a lado preço, avaliação, entrega e confiabilidade das ofertas selecionadas.",
 };
 
 export default function CompararPage() {
