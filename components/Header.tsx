@@ -34,12 +34,6 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
-          <button className="rounded-full border border-border px-5 py-2 text-sm font-medium text-text transition-colors hover:border-red hover:text-red">
-            Entrar
-          </button>
-        </div>
-
         <button
           className="-mr-2 p-2 text-text md:hidden"
           onClick={() => setOpen((v) => !v)}
@@ -62,9 +56,6 @@ export function Header() {
                 {link.label}
               </a>
             ))}
-            <button className="mt-2 rounded-full border border-border px-5 py-2 text-left text-sm font-medium text-text">
-              Entrar
-            </button>
           </nav>
         </div>
       )}
