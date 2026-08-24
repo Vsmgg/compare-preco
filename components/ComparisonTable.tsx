@@ -28,7 +28,7 @@ export function ComparisonTable({ offers }: { offers: CompareOffer[] }) {
   const bestId = [...offers].sort((a, b) => (b.score ?? -1) - (a.score ?? -1))[0]?.id;
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border">
+    <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-border bg-card-secondary">
@@ -126,7 +126,7 @@ function Row({
   const minValue = highlightMin ? Math.min(...highlightMin.filter((v): v is number => v != null)) : null;
 
   return (
-    <tr className="border-b border-border last:border-0">
+    <tr className="border-b border-border transition-colors last:border-0 hover:bg-card-secondary/40">
       <td className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</td>
       {values.map((v, i) => (
         <td
