@@ -34,6 +34,13 @@ export const metadata: Metadata = {
       "A IA pesquisa a internet, compara preços, avaliações, entrega e confiabilidade para encontrar as melhores opções para você.",
     type: "website",
     locale: "pt_BR",
+    siteName: "Compare Preço",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Compare Preço — Encontre o melhor preço na internet",
+    description:
+      "A IA pesquisa a internet, compara preços, avaliações, entrega e confiabilidade para encontrar as melhores opções para você.",
   },
 };
 
