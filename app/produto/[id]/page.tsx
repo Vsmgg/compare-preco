@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -35,7 +37,7 @@ interface OfferRow {
   rank: number | null;
 }
 
-async function getData(id: string) {
+const getData = cache(async (id: string) => {
   const offerRows = await sql`SELECT * FROM offers WHERE id = ${id}`;
   const offer = offerRows[0] as OfferRow | undefined;
   if (!offer) return null;
@@ -55,6 +57,18 @@ async function getData(id: string) {
   const productRows = await sql`SELECT * FROM products WHERE id = ${offer.product_id}`;
 
   return { offer, siblings, history, product: productRows[0] };
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getData(id);
+  if (!data) return {};
+
+  const { offer } = data;
+  return {
+    title: offer.title,
+    description: `Compare o preço de "${offer.title}" na ${offer.store} com outras lojas e veja o histórico de preço.`,
+  };
 }
 
 export default async function ProdutoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -126,7 +140,7 @@ export default async function ProdutoPage({ params }: { params: Promise<{ id: st
                   href={goHref}
                   target="_blank"
                   rel="noopener noreferrer sponsored"
-                  className="flex items-center gap-2 rounded-xl bg-red px-6 py-3.5 text-sm font-semibold text-white hover:bg-red-soft"
+                  className="flex items-center gap-2 rounded-xl bg-red px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-red-soft"
                 >
                   Comprar
                   <ExternalLink size={16} />

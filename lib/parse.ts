@@ -169,7 +169,15 @@ function stripAccents(text: string): string {
   return text.replace(/[áàâãäéèêëíìîïóòôõöúùûüç]/g, (ch) => ACCENT_MAP[ch] ?? ch);
 }
 
+// Amazon (and similar marketplaces) title brand/department landing pages as
+// "amazon.com.br: Nike: Masculino" — the inverse of "Categoria - Loja", so it
+// slips past the check below unless caught separately. No real single-product
+// title has this "domain: X: Y" shape with no digits anywhere.
+const STORE_PREFIX_LISTING_PATTERN = /^[a-z0-9-]+\.com(?:\.br)?\s*:\s*[^:]+:\s*[^:]+$/i;
+
 export function isGenericCategoryTitle(title: string): boolean {
+  if (STORE_PREFIX_LISTING_PATTERN.test(title.trim()) && !/\d/.test(title)) return true;
+
   const normalized = stripAccents(title.toLowerCase())
     .replace(/[|].*$/, "")
     .replace(/[-–—:].*$/, "")

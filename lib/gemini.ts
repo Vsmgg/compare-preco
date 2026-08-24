@@ -165,6 +165,7 @@ Para cada item da lista, com base SOMENTE no texto fornecido (title/text, que ve
 - Se o texto mencionar apenas um percentual ("37% OFF", "37% de desconto") SEM citar o valor em reais do preço original, marque hasDiscount=false e originalPrice=null — NUNCA calcule o preço original a partir do percentual, isso seria um dado inferido, não confirmado.
 - Se mencionar apenas "oferta", "promoção" ou "liquidação" sem nenhum valor original em reais, hasDiscount=false.
 - Se houver qualquer dúvida sobre se o preço original citado é do mesmo produto/variante do preço atual, hasDiscount=false.
+- Se o "title" parecer uma página de categoria, departamento ou marca de uma loja (ex: "Amazon.com.br: Nike: Masculino", "Eletrônicos - Loja X", ou qualquer título genérico sem identificar um produto específico com marca+modelo), hasDiscount=false — isso não é um produto individual.
 - originalPrice deve ser sempre maior que o campo "price" do item.
 
 Itens:
